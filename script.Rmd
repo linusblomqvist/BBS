@@ -1,0 +1,71 @@
+---
+title: "BBS"
+author: "Linus Blomqvist"
+date: "3/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+
+```{r}
+data_full <- read.csv("BBS_data.csv")
+```
+
+```{r}
+breeding_evidence_cat <- unique(data_full$Breeding.Evidence)
+select_evidence_cat <- breeding_evidence_cat[c(11, 6, 22, 4, 13, 10, 3, 24, 1, 7, 9, 15, 27, 18, 20)]
+red_cat <- select_evidence_cat[c(1,2)]
+blue_cat <- select_evidence_cat[c(3,4)]
+black_cat <- select_evidence_cat[5:9]
+green_cat <- select_evidence_cat[10:14]
+orange_cat <- select_evidence_cat[15]
+
+data <- data_full %>% filter(Breeding.Evidence %in% select_evidence_cat)
+
+data$evidence_category <- rep(NA, nrow(data))
+data$evidence_category[data$Breeding.Evidence %in% red_cat] <- "Carrying nest material"
+data$evidence_category[data$Breeding.Evidence %in% blue_cat] <- "Copulation"
+data$evidence_category[data$Breeding.Evidence %in% black_cat] <- "Carrying food"
+data$evidence_category[data$Breeding.Evidence %in% green_cat] <- "Family group"
+data$evidence_category[data$Breeding.Evidence %in% orange_cat] <- "Juv indep"
+```
+
+```{r}
+data$Date <- dmy(data$Date)
+data$week <- week(data$Date)
+```
+
+```{r}
+evidence_by_date <- data %>%
+  filter(Common.Name == "Red-tailed Hawk") %>%
+  group_by(week, Breeding.Evidence) %>%
+  tally()
+```
+
+```{r}
+cond_evidence_by_week <- data %>%
+  filter(Common.Name == "Red-tailed Hawk") %>%
+  group_by(week, evidence_category) %>%
+  tally()
+```
+
+
+```{r}
+ggplot(evidence_by_date, aes(x = week, y = n, color = Breeding.Evidence)) +
+  geom_point()
+```
+
+```{r}
+ggplot(cond_evidence_by_week, aes(x = week, y = n, color = evidence_category)) +
+  geom_point() +
+  scale_color_manual(values = c("black", "red", "blue", "green", "orange")) +
+  labs(title = "Red-tailed Hawk", x = "Week", y = "Count", color = "Type of evidence")
+```
+

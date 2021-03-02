@@ -1,34 +1,54 @@
 ---
-title: "BBS"
+title: "Santa Barbara Breeding Bird Study"
 author: "Linus Blomqvist"
 date: "3/2/2021"
-output: html_document
+output:
+  html_document:
+    code_folding: show
 ---
 
 ```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
-```{r}
+```{r include = FALSE}
 library(tidyverse)
 library(lubridate)
 ```
 
+This is a very quick-and-dirty first attempt at making the graphs Mark requested for the SB BBS.
+
+# Data prep
 ```{r}
+# Read in data
 data_full <- read.csv("BBS_data.csv")
 ```
 
+There are `r length(unique(data_full$Breeding.Evidence))` types of breeding evidence in the dataset. Mark said he's focusing on 15 of them in the following categories:
+
+![](categories.png){width=40%}
+
+In the code below, I group the evidence types in the dataset into those categories, labeled by the corresponding color in Mark's list, and then make a categorical variable for the five groups. I label these groups with the first name in Mark's list, so the group composed of "Carrying nest material" and "Nest building" is just called "Carrying nest material."
+
 ```{r}
+# Get unique types of breeding evidence
 breeding_evidence_cat <- unique(data_full$Breeding.Evidence)
+
+# Select the 15 Mark is interested in
 select_evidence_cat <- breeding_evidence_cat[c(11, 6, 22, 4, 13, 10, 3, 24, 1, 7, 9, 15, 27, 18, 20)]
+
+# Group into the five categories
 red_cat <- select_evidence_cat[c(1,2)]
 blue_cat <- select_evidence_cat[c(3,4)]
 black_cat <- select_evidence_cat[5:9]
 green_cat <- select_evidence_cat[10:14]
 orange_cat <- select_evidence_cat[15]
 
+# Filter the dataset to only include observations with evidence in one of the 15 categories
 data <- data_full %>% filter(Breeding.Evidence %in% select_evidence_cat)
 
+# Make categorical variable
 data$evidence_category <- rep(NA, nrow(data))
 data$evidence_category[data$Breeding.Evidence %in% red_cat] <- "Carrying nest material"
 data$evidence_category[data$Breeding.Evidence %in% blue_cat] <- "Copulation"
@@ -37,17 +57,27 @@ data$evidence_category[data$Breeding.Evidence %in% green_cat] <- "Family group"
 data$evidence_category[data$Breeding.Evidence %in% orange_cat] <- "Juv indep"
 ```
 
+I also standardize the date format and make a new variable for week.
+
 ```{r}
+# Standardize date format
 data$Date <- dmy(data$Date)
+
+# Make a new variable, week
 data$week <- week(data$Date)
 ```
 
-```{r}
-evidence_by_date <- data %>%
-  filter(Common.Name == "Red-tailed Hawk") %>%
-  group_by(week, Breeding.Evidence) %>%
-  tally()
-```
+# Red-tailed Hawk
+
+One of the graphs Mark asked for looks like this:
+
+<center>
+
+![Red-tailed Hawk graph](bbs_rth.png)
+
+</center>
+
+Here I filter observations only for Red-tailed Hawk, then summarize across week and group of evidence  (among 5 groups).
 
 ```{r}
 cond_evidence_by_week <- data %>%
@@ -56,11 +86,7 @@ cond_evidence_by_week <- data %>%
   tally()
 ```
 
-
-```{r}
-ggplot(evidence_by_date, aes(x = week, y = n, color = Breeding.Evidence)) +
-  geom_point()
-```
+And then plot it. Each dot is the number of observations in a given week for a given type of evidence, across all years. The color denotes the evidence category.
 
 ```{r}
 ggplot(cond_evidence_by_week, aes(x = week, y = n, color = evidence_category)) +

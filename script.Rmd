@@ -29,7 +29,11 @@ There are `r length(unique(data_full$Breeding.Evidence))` types of breeding evid
 
 ![](categories.png){width=40%}
 
-In the code below, I group the evidence types in the dataset into those categories, labeled by the corresponding color in Mark's list, and then make a categorical variable for the five groups. I label these groups with the first name in Mark's list, so the group composed of "Carrying nest material" and "Nest building" is just called "Carrying nest material."
+In the code below, I group the evidence types in the dataset into those categories, labeled by the corresponding color in Mark's list, and then make a categorical variable for the five groups.
+
+These categories are described as follows:
+
+![](categories_name.png){width=40%}
 
 ```{r}
 # Get unique types of breeding evidence
@@ -50,11 +54,11 @@ data <- data_full %>% filter(Breeding.Evidence %in% select_evidence_cat)
 
 # Make categorical variable
 data$evidence_category <- rep(NA, nrow(data))
-data$evidence_category[data$Breeding.Evidence %in% red_cat] <- "Carrying nest material"
-data$evidence_category[data$Breeding.Evidence %in% blue_cat] <- "Copulation"
-data$evidence_category[data$Breeding.Evidence %in% black_cat] <- "Carrying food"
-data$evidence_category[data$Breeding.Evidence %in% green_cat] <- "Family group"
-data$evidence_category[data$Breeding.Evidence %in% orange_cat] <- "Juv indep"
+data$evidence_category[data$Breeding.Evidence %in% red_cat] <- "Nest construction"
+data$evidence_category[data$Breeding.Evidence %in% blue_cat] <- "Copulation and eggs in nest"
+data$evidence_category[data$Breeding.Evidence %in% black_cat] <- "Nestling and brancher"
+data$evidence_category[data$Breeding.Evidence %in% green_cat] <- "Fledglings and families"
+data$evidence_category[data$Breeding.Evidence %in% orange_cat] <- "Juvenile independent"
 ```
 
 I also standardize the date format and make a new variable for week.
@@ -80,7 +84,7 @@ One of the graphs Mark asked for looks like this:
 Here I filter observations only for Red-tailed Hawk, then summarize across week and group of evidence (among 5 groups).
 
 ```{r}
-cond_evidence_by_week <- data %>%
+cond_evidence_by_week_rth <- data %>%
   filter(Common.Name == "Red-tailed Hawk") %>%
   group_by(week, evidence_category) %>%
   tally()
@@ -89,28 +93,117 @@ cond_evidence_by_week <- data %>%
 And then plot it. Each dot is the number of observations in a given week for a given type of evidence, across all years. The color denotes the evidence category.
 
 ```{r}
-# Base map - what all plots have in common
-base_rth <- ggplot(cond_evidence_by_week, aes(x = week, y = n, color = evidence_category)) +
-  scale_color_manual(values = c("black", "red", "blue", "green", "orange")) +
-  labs(title = "Red-tailed Hawk", x = "Week", y = "Count", color = "Type of evidence")
-```
-
-
-```{r}
-base_rth + geom_point()
-```
-
-We could also add in smoothed means:
-
-```{r}
-base_rth +
+ggplot(cond_evidence_by_week_rth, aes(x = week, y = n, color = evidence_category)) +
   geom_point() +
-  geom_smooth(se = FALSE, lwd = 0.8)
+  geom_smooth(se = FALSE, 
+              lwd = 0.8) +
+  scale_color_manual(values = c("blue", "green", "orange", "red", "black")) +
+  labs(x = "Week", 
+       y = "Count", 
+       color = "Breeding evidence") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill='white', colour='black'),
+        panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right") +
+  labs(title = "Breeding Phenology", 
+       subtitle = "Red-tailed Hawk", 
+       caption = "Dots represent total observations in a given week. Lines represent smoothed means.")
+
 ```
 
-Or just do a line graph:
+
+# White-tailed Kite
+
 ```{r}
-base_rth +
-  geom_line()
+cond_evidence_by_week_wtk <- data %>%
+  filter(Common.Name == "White-tailed Kite") %>%
+  group_by(week, evidence_category) %>%
+  tally()
 ```
 
+And then plot it. Each dot is the number of observations in a given week for a given type of evidence, across all years. The color denotes the evidence category.
+
+```{r}
+ggplot(cond_evidence_by_week_wtk, aes(x = week, y = n, color = evidence_category)) +
+  geom_point() +
+  geom_smooth(se = FALSE, 
+              lwd = 0.8) +
+  scale_color_manual(values = c("blue", "green", "orange", "red", "black")) +
+  labs(x = "Week", 
+       y = "Count", 
+       color = "Breeding evidence") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill='white', colour='black'),
+        panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right") +
+  labs(title = "Breeding Phenology", 
+       subtitle = "White-tailed Kite", 
+       caption = "Dots represent total observations in a given week. Lines represent smoothed means.")
+
+```
+
+
+# Cooper's Hawk
+
+```{r}
+cond_evidence_by_week_coop <- data %>%
+  filter(Common.Name == "Cooper's Hawk") %>%
+  group_by(week, evidence_category) %>%
+  tally()
+```
+
+And then plot it. Each dot is the number of observations in a given week for a given type of evidence, across all years. The color denotes the evidence category.
+
+```{r}
+ggplot(cond_evidence_by_week_coop, aes(x = week, y = n, color = evidence_category)) +
+  geom_line() +
+  geom_smooth(se = FALSE, 
+              lwd = 0.8) +
+  scale_color_manual(values = c("blue", "green", "orange", "red", "black")) +
+  labs(x = "Week", 
+       y = "Count", 
+       color = "Breeding evidence") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill='white', colour='black'),
+        panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right") +
+  labs(title = "Breeding Phenology", 
+       subtitle = "Cooper's Hawk", 
+       caption = "Dots represent total observations in a given week. Lines represent smoothed means.")
+
+```
+
+
+# Red-shouldered Hawk
+
+```{r}
+cond_evidence_by_week_rsh <- data %>%
+  filter(Common.Name == "Red-shouldered Hawk") %>%
+  group_by(week, evidence_category) %>%
+  tally()
+```
+
+And then plot it. Each dot is the number of observations in a given week for a given type of evidence, across all years. The color denotes the evidence category.
+
+```{r}
+ggplot(cond_evidence_by_week_rsh, aes(x = week, y = n, color = evidence_category)) +
+  geom_point() +
+  geom_smooth(se = FALSE, 
+              lwd = 0.8) +
+  scale_color_manual(values = c("blue", "green", "orange", "red", "black")) +
+  labs(x = "Week", 
+       y = "Count", 
+       color = "Breeding evidence") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill='white', colour='black'),
+        panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right") +
+  labs(title = "Breeding Phenology", 
+       subtitle = "Red-shouldered Hawk", 
+       caption = "Dots represent total observations in a given week. Lines represent smoothed means.")
+
+```

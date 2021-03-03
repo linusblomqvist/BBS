@@ -4,7 +4,7 @@ author: "Linus Blomqvist"
 date: "3/2/2021"
 output:
   html_document:
-    code_folding: show
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
@@ -77,7 +77,7 @@ One of the graphs Mark asked for looks like this:
 
 </center>
 
-Here I filter observations only for Red-tailed Hawk, then summarize across week and group of evidence  (among 5 groups).
+Here I filter observations only for Red-tailed Hawk, then summarize across week and group of evidence (among 5 groups).
 
 ```{r}
 cond_evidence_by_week <- data %>%
@@ -89,9 +89,28 @@ cond_evidence_by_week <- data %>%
 And then plot it. Each dot is the number of observations in a given week for a given type of evidence, across all years. The color denotes the evidence category.
 
 ```{r}
-ggplot(cond_evidence_by_week, aes(x = week, y = n, color = evidence_category)) +
-  geom_point() +
+# Base map - what all plots have in common
+base_rth <- ggplot(cond_evidence_by_week, aes(x = week, y = n, color = evidence_category)) +
   scale_color_manual(values = c("black", "red", "blue", "green", "orange")) +
   labs(title = "Red-tailed Hawk", x = "Week", y = "Count", color = "Type of evidence")
+```
+
+
+```{r}
+base_rth + geom_point()
+```
+
+We could also add in smoothed means:
+
+```{r}
+base_rth +
+  geom_point() +
+  geom_smooth(se = FALSE, lwd = 0.8)
+```
+
+Or just do a line graph:
+```{r}
+base_rth +
+  geom_line()
 ```
 

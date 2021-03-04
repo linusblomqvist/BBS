@@ -69,7 +69,13 @@ data$Date <- dmy(data$Date)
 
 # Make a new variable, week
 data$week <- week(data$Date)
+data$year <- year(data$Date)
+
 ```
+
+# Species
+
+The code below is very repetitive so should not be seen as an example of good coding. It was just the fasteest way to get some graphs to show to Mark. I'll work on streamlining the code.
 
 # Red-tailed Hawk
 
@@ -207,3 +213,35 @@ ggplot(cond_evidence_by_week_rsh, aes(x = week, y = n, color = evidence_category
        caption = "Dots represent total observations in a given week. Lines represent smoothed means.")
 
 ```
+
+
+# Boxplots
+
+Still working on this
+
+```{r}
+
+breeding_evidence <- data %>%
+  filter(Common.Name %in% c("Red-tailed Hawk", "White-tailed Kite", "Red-shouldered Hawk", "Cooper's Hawk")) %>%
+  group_by(week, year, Common.Name, evidence_category) %>%
+  tally()
+
+breeding_evidence$evidence_category <- factor(breeding_evidence$evidence_category, levels = c("Nest construction", "Copulation and eggs in nest", "Nestling and brancher", "Fledglings and families", "Juvenile independent"))
+
+```
+
+```{r}
+ggplot(filter(breeding_evidence, Common.Name == "Red-tailed Hawk"), aes(x = evidence_category, y = week)) +
+  geom_boxplot() +
+  coord_flip() +
+  labs(title = "Breeding Phenology", 
+       subtitle = "Red-shouldered Hawk") +
+  labs(x = "Breeding evidence", 
+       y = "Week") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill='white', colour='black'),
+        panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right")
+```
+

@@ -73,11 +73,11 @@ data$year <- year(data$Date)
 
 ```
 
-# Species
+# Scatterplots (with lines)
 
-The code below is very repetitive so should not be seen as an example of good coding. It was just the fasteest way to get some graphs to show to Mark. I'll work on streamlining the code.
+The code below is very repetitive so should not be seen as an example of good coding. It was just the fastest way to get some graphs to show to Mark. I'll work on streamlining the code.
 
-# Red-tailed Hawk
+## Red-tailed Hawk
 
 One of the graphs Mark asked for looks like this:
 
@@ -121,7 +121,7 @@ ggplot(cond_evidence_by_week_rth, aes(x = week, y = n, color = evidence_category
 ```
 
 
-# White-tailed Kite
+## White-tailed Kite
 
 ```{r}
 cond_evidence_by_week_wtk <- data %>%
@@ -129,8 +129,6 @@ cond_evidence_by_week_wtk <- data %>%
   group_by(week, evidence_category) %>%
   tally()
 ```
-
-And then plot it. Each dot is the number of observations in a given week for a given type of evidence, across all years. The color denotes the evidence category.
 
 ```{r}
 ggplot(cond_evidence_by_week_wtk, aes(x = week, y = n, color = evidence_category)) +
@@ -152,8 +150,7 @@ ggplot(cond_evidence_by_week_wtk, aes(x = week, y = n, color = evidence_category
 
 ```
 
-
-# Cooper's Hawk
+## Cooper's Hawk
 
 ```{r}
 cond_evidence_by_week_coop <- data %>%
@@ -162,7 +159,6 @@ cond_evidence_by_week_coop <- data %>%
   tally()
 ```
 
-And then plot it. Each dot is the number of observations in a given week for a given type of evidence, across all years. The color denotes the evidence category.
 
 ```{r}
 ggplot(cond_evidence_by_week_coop, aes(x = week, y = n, color = evidence_category)) +
@@ -184,8 +180,7 @@ ggplot(cond_evidence_by_week_coop, aes(x = week, y = n, color = evidence_categor
 
 ```
 
-
-# Red-shouldered Hawk
+## Red-shouldered Hawk
 
 ```{r}
 cond_evidence_by_week_rsh <- data %>%
@@ -193,8 +188,6 @@ cond_evidence_by_week_rsh <- data %>%
   group_by(week, evidence_category) %>%
   tally()
 ```
-
-And then plot it. Each dot is the number of observations in a given week for a given type of evidence, across all years. The color denotes the evidence category.
 
 ```{r}
 ggplot(cond_evidence_by_week_rsh, aes(x = week, y = n, color = evidence_category)) +
@@ -232,9 +225,12 @@ breeding_evidence$evidence_category <- factor(breeding_evidence$evidence_categor
 
 ```
 
+Dots indicate observations.
+
+## Red-tailed Hawk
 ```{r}
 ggplot(filter(breeding_evidence, Common.Name == "Red-tailed Hawk"), aes(x = evidence_category, y = week)) +
-  geom_violin() +
+  geom_boxplot() +
   geom_jitter(color = "blue", width = 0.05, size = 0.3, alpha = 0.9) +
   coord_flip() +
   labs(title = "Breeding Phenology", 
@@ -246,5 +242,16 @@ ggplot(filter(breeding_evidence, Common.Name == "Red-tailed Hawk"), aes(x = evid
         panel.background = element_rect(fill='white', colour='black'),
         panel.grid.major.y = element_line(colour = "gray"),
         legend.position = "right")
+```
+
+# Multi-density chart
+
+## Red-tailed Hawk
+
+Ignore colors and other layout here
+
+```{r}
+ggplot(filter(breeding_evidence, Common.Name == "Red-tailed Hawk"), aes(x = week, color = evidence_category, fill = evidence_category)) +
+    geom_density(adjust=1.5, alpha=.4)
 ```
 

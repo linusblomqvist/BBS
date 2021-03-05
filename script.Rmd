@@ -89,6 +89,8 @@ One of the graphs Mark asked for looks like this:
 
 Here I filter observations only for Red-tailed Hawk, then summarize across week and group of evidence (among 5 groups).
 
+THIS IS NOT AN EFFICIENT WAY OF PULLING THIS DATA TOGETHER - SEE BELOW UNDER BOXPLOTS FOR A MORE PROMISING AVENUE
+
 ```{r}
 cond_evidence_by_week_rth <- data %>%
   filter(Common.Name == "Red-tailed Hawk") %>%
@@ -217,7 +219,7 @@ ggplot(cond_evidence_by_week_rsh, aes(x = week, y = n, color = evidence_category
 
 # Boxplots
 
-Still working on this
+Still working on this, but the next code chunk is a better way to pull all the relevant data for a number of species together, instead of doing it separately for each species.
 
 ```{r}
 
@@ -232,10 +234,11 @@ breeding_evidence$evidence_category <- factor(breeding_evidence$evidence_categor
 
 ```{r}
 ggplot(filter(breeding_evidence, Common.Name == "Red-tailed Hawk"), aes(x = evidence_category, y = week)) +
-  geom_boxplot() +
+  geom_violin() +
+  geom_jitter(color = "blue", width = 0.05, size = 0.3, alpha = 0.9) +
   coord_flip() +
   labs(title = "Breeding Phenology", 
-       subtitle = "Red-shouldered Hawk") +
+       subtitle = "Red-tailed Hawk") +
   labs(x = "Breeding evidence", 
        y = "Week") +
   theme(plot.title = element_text(hjust = 0.5),

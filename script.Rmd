@@ -2,14 +2,12 @@
 title: "Santa Barbara Breeding Bird Study"
 author: "Linus Blomqvist"
 date: "3/2/2021"
-output:
-  html_document:
-    code_folding: hide
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```
 
 ```{r include = FALSE}
@@ -17,7 +15,7 @@ library(tidyverse)
 library(lubridate)
 ```
 
-This is a very quick-and-dirty first attempt at making the graphs Mark requested for the SB BBS.
+Here, I explore ways to present data from the Santa Barbara Breeding Bird Study. Since this is exploratory, it should not be cited.
 
 # Data prep
 ```{r}
@@ -25,11 +23,11 @@ This is a very quick-and-dirty first attempt at making the graphs Mark requested
 data_full <- read.csv("BBS_data.csv")
 ```
 
-There are `r length(unique(data_full$Breeding.Evidence))` types of breeding evidence in the dataset. Mark said he's focusing on 15 of them in the following categories:
+There are `r length(unique(data_full$Breeding.Evidence))` types of breeding evidence in the dataset. We are focusing on 15 of them in the following categories:
 
 ![](categories.png){width=40%}
 
-In the code below, I group the evidence types in the dataset into those categories, labeled by the corresponding color in Mark's list, and then make a categorical variable for the five groups.
+In the code below, I group the evidence types in the dataset into those categories, labeled by the corresponding color in the previous list, and then make a categorical variable for the five groups.
 
 These categories are described as follows:
 
@@ -70,16 +68,16 @@ data$Date <- dmy(data$Date)
 # Make a new variable, week
 data$week <- week(data$Date)
 data$year <- year(data$Date)
+data$month <- month(data$Date)
+data$day <- day(data$Date)
 
 ```
 
 # Scatterplots (with lines)
 
-The code below is very repetitive so should not be seen as an example of good coding. It was just the fastest way to get some graphs to show to Mark. I'll work on streamlining the code.
-
 ## Red-tailed Hawk
 
-One of the graphs Mark asked for looks like this:
+This is a manual template for a figure:
 
 <center>
 
@@ -88,8 +86,6 @@ One of the graphs Mark asked for looks like this:
 </center>
 
 Here I filter observations only for Red-tailed Hawk, then summarize across week and group of evidence (among 5 groups).
-
-THIS IS NOT AN EFFICIENT WAY OF PULLING THIS DATA TOGETHER - SEE BELOW UNDER BOXPLOTS FOR A MORE PROMISING AVENUE
 
 ```{r}
 cond_evidence_by_week_rth <- data %>%
@@ -176,7 +172,7 @@ ggplot(cond_evidence_by_week_coop, aes(x = week, y = n, color = evidence_categor
         legend.position = "right") +
   labs(title = "Breeding Phenology", 
        subtitle = "Cooper's Hawk", 
-       caption = "Dots represent total observations in a given week. Lines represent smoothed means.")
+       caption = "Dots represent total observations in a given week")
 
 ```
 
@@ -212,20 +208,21 @@ ggplot(cond_evidence_by_week_rsh, aes(x = week, y = n, color = evidence_category
 
 # Boxplots
 
-Still working on this, but the next code chunk is a better way to pull all the relevant data for a number of species together, instead of doing it separately for each species.
-
 ```{r}
 
 breeding_evidence <- data %>%
-  filter(Common.Name %in% c("Red-tailed Hawk", "White-tailed Kite", "Red-shouldered Hawk", "Cooper's Hawk")) %>%
   group_by(week, year, Common.Name, evidence_category) %>%
   tally()
 
 breeding_evidence$evidence_category <- factor(breeding_evidence$evidence_category, levels = c("Nest construction", "Copulation and eggs in nest", "Nestling and brancher", "Fledglings and families", "Juvenile independent"))
 
-```
+# Alternative approach
+breeding_evidence_by_day <- data %>%
+  filter(Common.Name %in% c("Red-tailed Hawk", "White-tailed Kite", "Red-shouldered Hawk", "Cooper's Hawk")) %>%
+  group_by(day, month, Common.Name, evidence_category) %>%
+  tally()
 
-Dots indicate observations.
+```
 
 ## Red-tailed Hawk
 ```{r}
@@ -236,7 +233,8 @@ ggplot(filter(breeding_evidence, Common.Name == "Red-tailed Hawk"), aes(x = evid
   labs(title = "Breeding Phenology", 
        subtitle = "Red-tailed Hawk") +
   labs(x = "Breeding evidence", 
-       y = "Week") +
+       y = "Week",
+       caption = "Dots indicate observations") +
   theme(plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
         panel.background = element_rect(fill='white', colour='black'),
@@ -251,7 +249,37 @@ ggplot(filter(breeding_evidence, Common.Name == "Red-tailed Hawk"), aes(x = evid
 Ignore colors and other layout here
 
 ```{r}
-ggplot(filter(breeding_evidence, Common.Name == "Red-tailed Hawk"), aes(x = week, color = evidence_category, fill = evidence_category)) +
-    geom_density(adjust=1.5, alpha=.4)
+density_plot <- ggplot(filter(breeding_evidence, Common.Name == "Gadwall"), aes(x = week, color = evidence_category, fill = evidence_category)) +
+    geom_density(adjust=1.5, alpha=.3) +
+    labs(title = "Breeding Phenology", 
+       subtitle = "Gadwall") +
+    labs(x = "Week",
+         y = "Density") +
+    theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill='white', colour='black'),
+        panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right")
+density_plot
+```
+
+```{r eval = FALSE}
+jpeg("figures/rplot.jpg")
+# 2. Create the plot
+density_plot
+# 3. Close the file
+dev.off()
+```
+
+```{r eval = FALSE}
+
+# loop to produce figures for all species - not complete
+species_names <- unique(data$Common.Name)
+
+for (i in 1:length(species_names)) {
+  
+}
+ggplot(filter(breeding_evidence, Common.Name == species_names[i]), aes(x = week, color = evidence_category, fill = evidence_category)) +
+    geom_density(adjust=1.5, alpha=.3)
 ```
 

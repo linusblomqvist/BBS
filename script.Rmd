@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```{r include = FALSE}
 library(tidyverse)
 library(lubridate)
+library(gridExtra)
 ```
 
 Here, I explore ways to present data from the Santa Barbara Breeding Bird Study. Since this is exploratory, it should not be cited.
@@ -281,7 +282,7 @@ ggplot(filter(breeding_evidence, Common.Name == "European Starling"), aes(x = we
 ## Mallard
 
 ```{r}
-ggplot(filter(breeding_evidence, Common.Name == "Mallard"), aes(x = week, color = evidence_category, fill = evidence_category)) +
+mallard <- ggplot(filter(breeding_evidence, Common.Name == "Mallard"), aes(x = week, color = evidence_category, fill = evidence_category)) +
     geom_density(adjust=1.5, alpha=.3) +
     labs(title = "Breeding Phenology", 
        subtitle = "Mallard") +
@@ -292,6 +293,30 @@ ggplot(filter(breeding_evidence, Common.Name == "Mallard"), aes(x = week, color 
         panel.background = element_rect(fill='white', colour='black'),
         panel.grid.major.y = element_line(colour = "gray"),
         legend.position = "right")
+mallard
+```
+
+## Gadwall
+
+```{r}
+gadwall <- ggplot(filter(breeding_evidence, Common.Name == "Gadwall"), aes(x = week, color = evidence_category, fill = evidence_category)) +
+    geom_density(adjust=1.5, alpha=.3) +
+    labs(title = "Breeding Phenology", 
+       subtitle = "Gadwall") +
+    labs(x = "Week",
+         y = "Density") +
+    theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill='white', colour='black'),
+        panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right")
+gadwall
+```
+
+## Comparisons
+
+```{r eval = FALSE}
+grid.arrange(mallard, gadwall, ncol=2)
 ```
 
 

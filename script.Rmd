@@ -249,10 +249,10 @@ ggplot(filter(breeding_evidence, Common.Name == "Red-tailed Hawk"), aes(x = evid
 Ignore colors and other layout here
 
 ```{r}
-density_plot <- ggplot(filter(breeding_evidence, Common.Name == "Gadwall"), aes(x = week, color = evidence_category, fill = evidence_category)) +
+density_plot <- ggplot(filter(breeding_evidence, Common.Name == "Red-tailed Hawk"), aes(x = week, color = evidence_category, fill = evidence_category)) +
     geom_density(adjust=1.5, alpha=.3) +
     labs(title = "Breeding Phenology", 
-       subtitle = "Gadwall") +
+       subtitle = "Red-tailed Hawk") +
     labs(x = "Week",
          y = "Density") +
     theme(plot.title = element_text(hjust = 0.5),
@@ -262,6 +262,38 @@ density_plot <- ggplot(filter(breeding_evidence, Common.Name == "Gadwall"), aes(
         legend.position = "right")
 density_plot
 ```
+
+## European Starling
+```{r}
+ggplot(filter(breeding_evidence, Common.Name == "European Starling"), aes(x = week, color = evidence_category, fill = evidence_category)) +
+    geom_density(adjust=1.5, alpha=.3) +
+    labs(title = "Breeding Phenology", 
+       subtitle = "European Starling") +
+    labs(x = "Week",
+         y = "Density") +
+    theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill='white', colour='black'),
+        panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right")
+```
+
+## Mallard
+
+```{r}
+ggplot(filter(breeding_evidence, Common.Name == "Mallard"), aes(x = week, color = evidence_category, fill = evidence_category)) +
+    geom_density(adjust=1.5, alpha=.3) +
+    labs(title = "Breeding Phenology", 
+       subtitle = "Mallard") +
+    labs(x = "Week",
+         y = "Density") +
+    theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill='white', colour='black'),
+        panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right")
+```
+
 
 ```{r eval = FALSE}
 jpeg("figures/rplot.jpg")

@@ -16,9 +16,9 @@ library(lubridate)
 library(gridExtra)
 ```
 
+## Introduction
 Here, I explore ways to present data from the Santa Barbara Breeding Bird Study. Since this is exploratory, it should not be cited.
 
-# Data prep
 ```{r}
 # Read in data
 data_full <- read.csv("BBS_data.csv")
@@ -46,6 +46,7 @@ There are `r length(unique(data_full$Breeding.Evidence))` types of breeding evid
   + <span style="color:green">Fledgling with presumed parent</span>
 * <span style="color:orange">Juvenile independent</span>
 
+## Data prep
 In the code below, I group the evidence types in the dataset into those categories, labeled by the corresponding color in the previous list, and then make a categorical variable for the five groups.
 
 
@@ -62,8 +63,6 @@ blue_cat <- select_evidence_cat[c(3,4)]
 black_cat <- select_evidence_cat[5:9]
 green_cat <- select_evidence_cat[10:14]
 orange_cat <- select_evidence_cat[15]
-
-
 
 # Filter the dataset to only include observations with evidence in one of the 15 categories
 data <- data_full %>% filter(Breeding.Evidence %in% select_evidence_cat)
@@ -101,29 +100,9 @@ breeding_evidence_by_day$evidence_category <- factor(breeding_evidence_by_day$ev
 
 
 # Concatenate to date of year
-breeding_evidence_by_day$ymd <- str_c("2021", breeding_evidence_by_day$month, breeding_evidence_by_day$day,
-                                      sep = "-")
+breeding_evidence_by_day$ymd <- str_c("2021", breeding_evidence_by_day$month, 
+                                      breeding_evidence_by_day$day, sep = "-")
 breeding_evidence_by_day$date <- ymd(breeding_evidence_by_day$ymd)
-```
-
-## Test of day plot
-
-## Gadwall
-
-```{r}
-gadwall_by_day <- ggplot(filter(breeding_evidence_by_day, Common.Name == "Red-tailed Hawk"), aes(x = date, color = evidence_category, fill = evidence_category)) +
-    geom_density(adjust=1.5, alpha=.3) +
-    labs(title = "Breeding Phenology", 
-       subtitle = "Red-tailed Hawk") +
-    labs(x = "Date",
-         y = "Density") +
-    theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.background = element_rect(fill='white', colour='black'),
-        panel.grid.major.y = element_line(colour = "gray"),
-        legend.position = "right") +
-    scale_x_date(date_labels = "%b", date_breaks = "1 month")
-gadwall_by_day
 ```
 
 ## Figure templates
@@ -131,22 +110,50 @@ gadwall_by_day
 ```{r}
 # Density
 density_plot <- function(species) {
-  ggplot(filter(breeding_evidence_by_day, Common.Name == species), aes(x = date, color = evidence_category, fill = evidence_category)) +
+  ggplot(filter(breeding_evidence_by_day, Common.Name == species), aes(x = date, fill = evidence_category)) +
     geom_density(adjust=1.5, alpha=.3) +
     labs(title = "Breeding Phenology", 
        subtitle = species) +
     labs(x = "Date",
-         y = "Density") +
+         y = "Density",
+         fill = "Breeding evidence") +
     theme(plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        panel.background = element_rect(fill='white', colour='black'),
-        panel.grid.major.y = element_line(colour = "gray"),
-        legend.position = "right") +
+        # panel.background = element_rect(fill='white', colour='black'),
+        # panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right",
+        axis.text.y = element_blank(),
+        panel.background = element_blank(),
+        axis.ticks.y = element_blank()) +
     scale_x_date(date_labels = "%b", date_breaks = "1 month")
 }
 
-# Smoothed means
+# Density for comparison between two species with facet WORK IN PROGRESS
+density_comparison <- function(species_list, evidence_categories) {
+  breeding_evidence_by_day %>%
+    filter(Common.Name %in% species_list,
+         evidence_category %in% evidence_categories) %>% # among select_evidence_cat
+    ggplot(aes(x = date, fill = evidence_category)) +
+    geom_density(adjust=1.5, alpha=.3) +
+    facet_grid(rows = vars(Common.Name)) +
+    labs(title = "Breeding Phenology") +
+    labs(x = "Date",
+         y = "Density",
+         fill = "Breeding evidence") +
+    theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        # panel.background = element_rect(fill='white', colour='black'),
+        # panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right",
+        axis.text.y = element_blank(),
+        panel.background = element_blank(),
+        axis.ticks.y = element_blank()) +
+    scale_x_date(date_labels = "%b", date_breaks = "1 month")
+}
 
+
+
+# Smoothed means
 smoothed_means_plot <- function(species) {
   ggplot(filter(breeding_evidence_by_day, Common.Name == species), 
          aes(x = date, y = n, color = evidence_category)) +
@@ -183,8 +190,7 @@ boxplot_bird <- function(species) {
         plot.subtitle = element_text(hjust = 0.5),
         panel.background = element_rect(fill='white', colour='black'),
         panel.grid.major.y = element_line(colour = "gray"),
-        legend.position = "right",
-        legend.title = "Evidence category")
+        legend.position = "right")
 }
 ```
 
@@ -192,254 +198,13 @@ boxplot_bird <- function(species) {
 density_plot("Red-tailed Hawk")
 ```
 
-# Scatterplots (with lines)
-
-## Red-tailed Hawk
-
-This is a manual template for a figure:
-
-<center>
-
-![Red-tailed Hawk graph](bbs_rth.png)
-
-</center>
-
-Here I filter observations only for Red-tailed Hawk, then summarize across week and group of evidence (among 5 groups).
-
 ```{r}
-cond_evidence_by_week_rth <- data %>%
-  filter(Common.Name == "Red-tailed Hawk") %>%
-  group_by(week, evidence_category) %>%
-  tally()
-```
-
-And then plot it. Each dot is the number of observations in a given week for a given type of evidence, across all years. The color denotes the evidence category.
-
-```{r}
-ggplot(cond_evidence_by_week_rth, aes(x = week, y = n, color = evidence_category)) +
-  geom_point() +
-  geom_smooth(se = FALSE, 
-              lwd = 0.8) +
-  scale_color_manual(values = c("blue", "green", "orange", "red", "black")) +
-  labs(x = "Week", 
-       y = "Count", 
-       color = "Breeding evidence") +
-  theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.background = element_rect(fill='white', colour='black'),
-        panel.grid.major.y = element_line(colour = "gray"),
-        legend.position = "right") +
-  labs(title = "Breeding Phenology", 
-       subtitle = "Red-tailed Hawk", 
-       caption = "Dots represent total observations in a given week. Lines represent smoothed means.")
-
+density_comparison("Mallard", "Gadwall")
 ```
 
 
-## White-tailed Kite
 
-```{r}
-cond_evidence_by_week_wtk <- data %>%
-  filter(Common.Name == "White-tailed Kite") %>%
-  group_by(week, evidence_category) %>%
-  tally()
-```
-
-```{r}
-ggplot(cond_evidence_by_week_wtk, aes(x = week, y = n, color = evidence_category)) +
-  geom_point() +
-  geom_smooth(se = FALSE, 
-              lwd = 0.8) +
-  scale_color_manual(values = c("blue", "green", "orange", "red", "black")) +
-  labs(x = "Week", 
-       y = "Count", 
-       color = "Breeding evidence") +
-  theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.background = element_rect(fill='white', colour='black'),
-        panel.grid.major.y = element_line(colour = "gray"),
-        legend.position = "right") +
-  labs(title = "Breeding Phenology", 
-       subtitle = "White-tailed Kite", 
-       caption = "Dots represent total observations in a given week. Lines represent smoothed means.")
-
-```
-
-## Cooper's Hawk
-
-```{r}
-cond_evidence_by_week_coop <- data %>%
-  filter(Common.Name == "Cooper's Hawk") %>%
-  group_by(week, evidence_category) %>%
-  tally()
-```
-
-
-```{r}
-ggplot(cond_evidence_by_week_coop, aes(x = week, y = n, color = evidence_category)) +
-  geom_line() +
-  geom_smooth(se = FALSE, 
-              lwd = 0.8) +
-  scale_color_manual(values = c("blue", "green", "orange", "red", "black")) +
-  labs(x = "Week", 
-       y = "Count", 
-       color = "Breeding evidence") +
-  theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.background = element_rect(fill='white', colour='black'),
-        panel.grid.major.y = element_line(colour = "gray"),
-        legend.position = "right") +
-  labs(title = "Breeding Phenology", 
-       subtitle = "Cooper's Hawk", 
-       caption = "Dots represent total observations in a given week")
-
-```
-
-## Red-shouldered Hawk
-
-```{r}
-cond_evidence_by_week_rsh <- data %>%
-  filter(Common.Name == "Red-shouldered Hawk") %>%
-  group_by(week, evidence_category) %>%
-  tally()
-```
-
-```{r}
-ggplot(cond_evidence_by_week_rsh, aes(x = week, y = n, color = evidence_category)) +
-  geom_point() +
-  geom_smooth(se = FALSE, 
-              lwd = 0.8) +
-  scale_color_manual(values = c("blue", "green", "orange", "red", "black")) +
-  labs(x = "Week", 
-       y = "Count", 
-       color = "Breeding evidence") +
-  theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.background = element_rect(fill='white', colour='black'),
-        panel.grid.major.y = element_line(colour = "gray"),
-        legend.position = "right") +
-  labs(title = "Breeding Phenology", 
-       subtitle = "Red-shouldered Hawk", 
-       caption = "Dots represent total observations in a given week. Lines represent smoothed means.")
-
-```
-
-
-# Boxplots
-
-```{r}
-
-breeding_evidence <- data %>%
-  group_by(week, year, Common.Name, evidence_category) %>%
-  tally()
-
-breeding_evidence$evidence_category <- factor(breeding_evidence$evidence_category, levels = c("Nest construction", "Copulation and eggs in nest", "Nestling and brancher", "Fledglings and families", "Juvenile independent"))
-
-# Alternative approach
-breeding_evidence_by_day <- data %>%
-  filter(Common.Name %in% c("Red-tailed Hawk", "White-tailed Kite", "Red-shouldered Hawk", "Cooper's Hawk")) %>%
-  group_by(day, month, Common.Name, evidence_category) %>%
-  tally()
-
-```
-
-## Red-tailed Hawk
-```{r}
-ggplot(filter(breeding_evidence, Common.Name == "Red-tailed Hawk"), aes(x = evidence_category, y = week)) +
-  geom_boxplot() +
-  geom_jitter(color = "blue", width = 0.05, size = 0.3, alpha = 0.9) +
-  coord_flip() +
-  labs(title = "Breeding Phenology", 
-       subtitle = "Red-tailed Hawk") +
-  labs(x = "Breeding evidence", 
-       y = "Week",
-       caption = "Dots indicate observations") +
-  theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.background = element_rect(fill='white', colour='black'),
-        panel.grid.major.y = element_line(colour = "gray"),
-        legend.position = "right")
-```
-
-# Multi-density chart
-
-## Red-tailed Hawk
-
-Ignore colors and other layout here
-
-```{r}
-density_plot <- ggplot(filter(breeding_evidence, Common.Name == "Red-tailed Hawk"), aes(x = week, color = evidence_category, fill = evidence_category)) +
-    geom_density(adjust=1.5, alpha=.3) +
-    labs(title = "Breeding Phenology", 
-       subtitle = "Red-tailed Hawk") +
-    labs(x = "Week",
-         y = "Density") +
-    theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.background = element_rect(fill='white', colour='black'),
-        panel.grid.major.y = element_line(colour = "gray"),
-        legend.position = "right")
-density_plot
-```
-
-## European Starling
-```{r}
-ggplot(filter(breeding_evidence, Common.Name == "European Starling"), aes(x = week, color = evidence_category, fill = evidence_category)) +
-    geom_density(adjust=1.5, alpha=.3) +
-    labs(title = "Breeding Phenology", 
-       subtitle = "European Starling") +
-    labs(x = "Week",
-         y = "Density") +
-    theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.background = element_rect(fill='white', colour='black'),
-        panel.grid.major.y = element_line(colour = "gray"),
-        legend.position = "right")
-```
-
-## Mallard
-
-```{r}
-mallard <- ggplot(filter(breeding_evidence, Common.Name == "Mallard"), aes(x = week, color = evidence_category, fill = evidence_category)) +
-    geom_density(adjust=1.5, alpha=.3) +
-    labs(title = "Breeding Phenology", 
-       subtitle = "Mallard") +
-    labs(x = "Week",
-         y = "Density") +
-    theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.background = element_rect(fill='white', colour='black'),
-        panel.grid.major.y = element_line(colour = "gray"),
-        legend.position = "right")
-mallard
-```
-
-## Gadwall
-
-```{r}
-gadwall <- ggplot(filter(breeding_evidence_by_day, Common.Name == "Gadwall"), aes(x = tmd, color = evidence_category, fill = evidence_category)) +
-    geom_density(adjust=1.5, alpha=.3) +
-    labs(title = "Breeding Phenology", 
-       subtitle = "Gadwall") +
-    labs(x = "Week",
-         y = "Density") +
-    theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.background = element_rect(fill='white', colour='black'),
-        panel.grid.major.y = element_line(colour = "gray"),
-        legend.position = "right")
-gadwall
-```
-
-## Comparisons
-
-```{r}
-grid.arrange(mallard, gadwall, nrow=2)
-
-# should do this with filter and facet
-```
-
-
+# Misc
 ```{r eval = FALSE}
 jpeg("figures/rplot.jpg")
 # 2. Create the plot

@@ -19,7 +19,7 @@ library(gridExtra)
 ## Introduction
 Here, I explore ways to present data from the Santa Barbara Breeding Bird Study. Since this is exploratory, it should not be cited.
 
-```{r}
+```{r eval = FALSE}
 # Read in data
 data_full <- read.csv("BBS_data.csv")
 ```
@@ -50,12 +50,19 @@ There are `r length(unique(data_full$Breeding.Evidence))` types of breeding evid
 In the code below, I group the evidence types in the dataset into those categories, labeled by the corresponding color in the previous list, and then make a categorical variable for the five groups.
 
 
-```{r}
+```{r eval = FALSE}
 # Get unique types of breeding evidence
 breeding_evidence_cat <- unique(data_full$Breeding.Evidence)
 
 # Select the 15 Mark is interested in
 select_evidence_cat <- breeding_evidence_cat[c(11, 6, 22, 4, 13, 10, 3, 24, 1, 7, 9, 15, 27, 18, 20)]
+
+all_evidence <- breeding_evidence_cat[-c(2, 17, 19, 20, 21, 23, 25, 26, 28:36)]
+
+# All species and native
+all_species <- unique(data_full$Common.Name)
+native_species <- all_species[!(all_species %in% c("European Starling", "Swan Goose",
+                                                 "Eurasian Collared-Dove"))]
 
 # Group into the five categories
 red_cat <- select_evidence_cat[c(1,2)]
@@ -98,12 +105,81 @@ breeding_evidence_by_week$evidence_category <- factor(breeding_evidence_by_week$
 
 breeding_evidence_by_day$evidence_category <- factor(breeding_evidence_by_day$evidence_category, levels = c("Nest construction", "Copulation and eggs in nest", "Nestling and brancher", "Fledglings and families", "Juvenile independent"))
 
-
 # Concatenate to date of year
 breeding_evidence_by_day$ymd <- str_c("2021", breeding_evidence_by_day$month, 
                                       breeding_evidence_by_day$day, sep = "-")
 breeding_evidence_by_day$date <- ymd(breeding_evidence_by_day$ymd)
+
+#####  Data all ########
+data_all_native <- data_full %>%
+  filter(Breeding.Evidence %in% all_evidence) %>%
+  filter(Common.Name %in% native_species)
+data_all_native$Date <- dmy(data_all_native$Date)
+data_all_native$week <- week(data_all_native$Date)
+data_all_native$year <- year(data_all_native$Date)
+data_all_native$month <- month(data_all_native$Date)
+data_all_native$day <- day(data_all_native$Date)
+
+# Group by and summarize by day
+data_all_native_by_day <- data_all_native %>%
+  group_by(day, month) %>%
+  tally()
+
+data_all_native_by_day$ymd <- str_c("2021", data_all_native_by_day$month, 
+                                      data_all_native_by_day$day, sep = "-")
+data_all_native_by_day$date <- ymd(data_all_native_by_day$ymd)
+
+# mallard_evidence <- 
 ```
+
+```{r}
+# Cleaner version
+
+# Read in data
+data_full <- read.csv("BBS_data.csv")
+
+# Standardize date format
+data_full$Date <- dmy(data_full$Date)
+
+# Make a new variables for week, year, month, day
+data_full$week <- week(data_full$Date)
+data_full$year <- year(data_full$Date)
+data_full$month <- month(data_full$Date)
+data_full$day <- day(data_full$Date)
+
+# Get unique types of breeding evidence
+breeding_evidence <- unique(data_full$Breeding.Evidence)
+
+# Group and create date variable
+data <- data_full %>%
+  group_by(day, month, Common.Name, Breeding.Evidence) %>%
+  tally()
+
+data$ymd <- str_c("2021", data$month, data$day, sep = "-")
+data$date <- ymd(data$ymd)
+data <- select(data, !ymd)
+
+# By month
+data_month <- data_full %>%
+  group_by(month, Common.Name, Breeding.Evidence) %>%
+  tally()
+```
+
+```{r}
+# Mallard vs Gadwall
+mallard_gadwall_evidence <- breeding_evidence[c(16, 4, 7, 9, 1, 5, 18, 20, 6, 3)]
+data_month %>%
+  filter(Common.Name %in% c("Mallard", "Gadwall")) %>%
+  filter(Breeding.Evidence %in% mallard_gadwall_evidence) %>%
+  group_by(Common.Name, month) %>%
+  summarize(count = sum(n)) %>%
+  ggplot(aes(x = month, y = count, color = Common.Name)) +
+  geom_point() +
+  geom_smooth(span = 0.7,
+              se = FALSE)
+```
+
+
 
 ## Figure templates
 
@@ -195,13 +271,50 @@ boxplot_bird <- function(species) {
 ```
 
 ```{r}
-density_plot("Red-tailed Hawk")
+density_plot("Cooper's Hawk")
 ```
 
 ```{r}
-density_comparison("Mallard", "Gadwall")
+smoothed_means_plot("Red-tailed Hawk")
 ```
 
+```{r}
+# Smoothed means all species and evidence
+ggplot(data_all_native_by_day, 
+         aes(x = date, y = n)) +
+  geom_point() +
+  geom_smooth(se = TRUE, 
+              lwd = 0.8,
+              span = 0.2) +
+  labs(x = "Date", 
+       y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill='white', colour='black'),
+        panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right") +
+  labs(title = "Breeding Phenology, all native species",
+       caption = "Dots represent total observations on a given day. Line represents smoothed mean.") +
+    scale_x_date(date_labels = "%b", date_breaks = "1 month")
+```
+
+
+```{r}
+ggplot(data_all_native_by_day) +
+  stat_density(mapping = aes(x = date, group = day),
+               adjust=1.5, alpha=.3,
+               stat = "density") +
+  labs(x = "Date", 
+       y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill='white', colour='black'),
+        panel.grid.major.y = element_line(colour = "gray"),
+        legend.position = "right") +
+  labs(title = "Breeding Phenology, all native species",
+       caption = "Dots represent total observations on a given day. Line represents smoothed mean.") +
+    scale_x_date(date_labels = "%b", date_breaks = "1 month")
+```
 
 
 # Misc

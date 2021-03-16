@@ -132,7 +132,7 @@ data_all_native_by_day$date <- ymd(data_all_native_by_day$ymd)
 # mallard_evidence <- 
 ```
 
-```{r}
+```{r eval = FALSE}
 # Cleaner version
 
 # Read in data
@@ -165,9 +165,21 @@ data_month <- data_full %>%
   tally()
 ```
 
-```{r}
-# Mallard vs Gadwall
+```{r eval = FALSE}
+# One species smooth function
+
+species_smooth <- function(data, breeding_evidence, time_aggregation, species_names) {
+  data_full %>%
+    filter(Common.Name %in% species_names) %>%
+    filter(Breeding.Evidence %in% breeding_evidence) %>%
+    group_by(time_aggregation, Common.Name) %>%
+    tally()
+}
+
+test <- species_smooth(data_full, mallard_gadwall_evidence, month, c("Mallard", "Gadwall"))
+
 mallard_gadwall_evidence <- breeding_evidence[c(16, 4, 7, 9, 1, 5, 18, 20, 6, 3)]
+
 data_month %>%
   filter(Common.Name %in% c("Mallard", "Gadwall")) %>%
   filter(Breeding.Evidence %in% mallard_gadwall_evidence) %>%
@@ -177,13 +189,117 @@ data_month %>%
   geom_point() +
   geom_smooth(span = 0.7,
               se = FALSE)
+
+# More complete
+data_full$floor_week <- floor_date(data_full$Date, "week")
+
+data_full %>%
+  group_by(floor_week, Common.Name, Breeding.Evidence) %>%
+  tally() %>%
+  filter(Common.Name %in% c("Mallard", "Gadwall")) %>%
+  filter(Breeding.Evidence %in% mallard_gadwall_evidence) %>%
+  group_by(Common.Name, floor_week) %>%
+  summarize(count = sum(n)) %>%
+  ggplot(aes(x = floor_week, y = count, color = Common.Name)) +
+  geom_point() +
+  geom_smooth(span = 0.7,
+              se = FALSE)
+
+#
+data_full %>%
+  filter(Common.Name %in% c("Mallard", "Gadwall")) %>%
+  filter(Breeding.Evidence %in% mallard_gadwall_evidence) %>%
+  group_by(floor_week, Common.Name) %>%
+  tally() %>%
+  ggplot(aes(x = floor_week, y = n, color = Common.Name)) +
+  geom_point() +
+  geom_smooth(span = 0.7,
+              se = FALSE)
+
+# weeks
+week_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"), by = "weeks"),
+                       week = 1:53)
+month_key <- data.frame(floor_day = seq(as.Date("2021-1-15"), as.Date("2021-12-31"), by = "months"),
+                       month = 1:12)
 ```
 
+
+```{r}
+# OK THIS MIGHT ACTUALLY WORK
+
+# Read in data
+data_full <- read.csv("BBS_data.csv")
+
+# Standardize date format
+data_full$Date <- dmy(data_full$Date)
+
+# Make a new variables for week, year, month, day
+data_full$week <- week(data_full$Date)
+data_full$year <- year(data_full$Date)
+data_full$month <- month(data_full$Date)
+data_full$day <- day(data_full$Date)
+
+# Get unique types of breeding evidence
+breeding_evidence <- unique(data_full$Breeding.Evidence)
+
+# weeks
+week_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"), by = "weeks"),
+                       week = 1:53)
+month_key <- data.frame(floor_day = seq(as.Date("2021-1-15"), as.Date("2021-12-31"), by = "months"),
+                       month = 1:12)
+
+mallard_gadwall_evidence <- breeding_evidence[c(16, 4, 7, 9, 1, 5, 18, 20, 6, 3)]
+
+data_full %>%
+  filter(Common.Name %in% c("Anna's Hummingbird", "Allen's Hummingbird")) %>%
+  filter(Breeding.Evidence %in% mallard_gadwall_evidence) %>%
+  group_by(month, Common.Name) %>%
+  tally() %>%
+  left_join(month_key, by = "month") %>%
+  ggplot(aes(x = floor_day, y = n, color = Common.Name)) +
+  geom_point() +
+  labs(x = "date",
+       y = "count") +
+  geom_smooth(span = 1,
+              se = FALSE)
+
+## As function
+species <- c("Anna's Hummingbird", "Allen's Hummingbird")
+breeding_evidence <- mallard_gadwall_evidence
+time_aggr <- month
+
+
+
+plot_function <- function(species, time_aggr, time_key, time_name, breeding_evidence) {
+  data_full %>%
+  filter(Common.Name %in% species) %>%
+  filter(Breeding.Evidence %in% breeding_evidence) %>%
+  group_by(time_aggr, Common.Name) %>%
+  tally() %>%
+  left_join(time_key, by = time_name) %>%
+  ggplot(aes(x = floor_day, y = n, color = Common.Name)) +
+  geom_point() +
+  labs(x = "date",
+       y = "count") +
+  geom_smooth(span = 1,
+              se = FALSE)
+}
+
+# Not yet working
+plot_function(c("Anna's Hummingbird", "Allen's Hummingbird"), "month", month_key, "month", mallard_gadwall_evidence)
+```
+
+
+## Summarize by week
+eg RTHA
+```{r eval = FALSE}
+data$floor_date <- floor_date(data$date, "week")
+```
 
 
 ## Figure templates
 
-```{r}
+```{r eval = FALSE}
 # Density
 density_plot <- function(species) {
   ggplot(filter(breeding_evidence_by_day, Common.Name == species), aes(x = date, fill = evidence_category)) +
@@ -270,15 +386,15 @@ boxplot_bird <- function(species) {
 }
 ```
 
-```{r}
+```{r eval = FALSE}
 density_plot("Cooper's Hawk")
 ```
 
-```{r}
+```{r eval = FALSE}
 smoothed_means_plot("Red-tailed Hawk")
 ```
 
-```{r}
+```{r eval = FALSE}
 # Smoothed means all species and evidence
 ggplot(data_all_native_by_day, 
          aes(x = date, y = n)) +
@@ -299,7 +415,7 @@ ggplot(data_all_native_by_day,
 ```
 
 
-```{r}
+```{r eval = FALSE}
 ggplot(data_all_native_by_day) +
   stat_density(mapping = aes(x = date, group = day),
                adjust=1.5, alpha=.3,

@@ -1,0 +1,97 @@
+---
+title: "Santa Barbara Breeding Bird Study: Graphs"
+author: "Linus Blomqvist"
+date: "3/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r include = FALSE}
+library(tidyverse)
+library(lubridate)
+library(gridExtra)
+```
+
+
+```{r}
+
+# Read in data
+data <- read.csv("BBS_data.csv")
+
+# Standardize date format
+data$Date <- dmy(data$Date)
+
+# Make a new variables for week, month, day
+data$week <- week(data$Date)
+data$month <- month(data$Date)
+data$day <- day(data$Date)
+
+# Get unique types of breeding evidence
+breeding_evidence <- unique(data$Breeding.Evidence)
+
+# week and month key
+week_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"), by = "weeks"),
+                       week = 1:53)
+month_key <- data.frame(floor_day = seq(as.Date("2021-1-15"), as.Date("2021-12-31"), by = "months"),
+                       month = 1:12)
+
+```
+
+```{r}
+
+# experimentation
+mallard_gadwall_evidence <- breeding_evidence[c(16, 4, 7, 9, 1, 5, 18, 6, 3)]
+
+data %>%
+  filter(Common.Name %in% c("Mallard", "Gadwall")) %>%
+  filter(Breeding.Evidence %in% mallard_gadwall_evidence) %>%
+  group_by(week, Common.Name) %>%
+  tally() %>%
+  left_join(week_key, by = "week") %>%
+  ggplot(aes(x = floor_day, y = n, color = Common.Name)) +
+  geom_point() +
+  labs(x = "date",
+       y = "count") +
+  geom_smooth(span = 1,
+              se = FALSE)
+
+```
+
+```{r}
+## As function
+species <- c("Anna's Hummingbird", "Allen's Hummingbird")
+breeding_evidence <- mallard_gadwall_evidence
+time_aggr <- month
+
+
+ #Doesn't work yet
+plot_function <- function(species, breeding_evidence, time_aggr, time_key, time_name) {
+  data_full %>%
+  filter(Common.Name %in% species) %>%
+  filter(Breeding.Evidence %in% breeding_evidence) %>%
+  group_by(time_aggr, Common.Name) %>%
+  tally() %>%
+  left_join(time_key, by = time_name) %>%
+  ggplot(aes(x = floor_day, y = n, color = Common.Name)) +
+  geom_point() +
+  labs(x = "date",
+       y = "count") +
+  geom_smooth(span = 1,
+              se = FALSE)
+}
+
+
+```
+
+```{r}
+# Graph example 1
+mallard_gadwall_evidence <- breeding_evidence[c(16, 4, 7, 9, 1, 5, 18, 20, 6, 3)]
+species <- c("Anna's Hummingbird", "Allen's Hummingbird")
+
+plot_function(species, mallard_gadwall_evidence, month, month_key, "month")
+```
+

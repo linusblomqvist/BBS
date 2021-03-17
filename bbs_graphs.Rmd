@@ -18,7 +18,6 @@ library(gridExtra)
 
 
 ```{r}
-
 # Read in data
 data <- read.csv("BBS_data.csv")
 
@@ -41,41 +40,17 @@ month_key <- data.frame(floor_day = seq(as.Date("2021-1-15"), as.Date("2021-12-3
 
 ```
 
-```{r}
-
-# experimentation
-mallard_gadwall_evidence <- breeding_evidence[c(16, 4, 7, 9, 1, 5, 18, 6, 3)]
-
-data %>%
-  filter(Common.Name %in% c("Mallard", "Gadwall")) %>%
-  filter(Breeding.Evidence %in% mallard_gadwall_evidence) %>%
-  group_by(week, Common.Name) %>%
-  tally() %>%
-  left_join(week_key, by = "week") %>%
-  ggplot(aes(x = floor_day, y = n, color = Common.Name)) +
-  geom_point() +
-  labs(x = "date",
-       y = "count") +
-  geom_smooth(span = 1,
-              se = FALSE)
-
-```
 
 ```{r}
-## As function
-species <- c("Anna's Hummingbird", "Allen's Hummingbird")
-breeding_evidence <- mallard_gadwall_evidence
-time_aggr <- month
+## Scatter / smoothed means plot function
 
-
- #Doesn't work yet
-plot_function <- function(species, breeding_evidence, time_aggr, time_key, time_name) {
-  data_full %>%
+plot_function <- function(species, breeding_evidence, time_aggr, time_key) {
+  data %>%
   filter(Common.Name %in% species) %>%
   filter(Breeding.Evidence %in% breeding_evidence) %>%
-  group_by(time_aggr, Common.Name) %>%
+  group_by(!!as.name(time_aggr), Common.Name) %>%
   tally() %>%
-  left_join(time_key, by = time_name) %>%
+  left_join(time_key, by = time_aggr) %>%
   ggplot(aes(x = floor_day, y = n, color = Common.Name)) +
   geom_point() +
   labs(x = "date",
@@ -88,10 +63,10 @@ plot_function <- function(species, breeding_evidence, time_aggr, time_key, time_
 ```
 
 ```{r}
-# Graph example 1
-mallard_gadwall_evidence <- breeding_evidence[c(16, 4, 7, 9, 1, 5, 18, 20, 6, 3)]
-species <- c("Anna's Hummingbird", "Allen's Hummingbird")
+# Graph example 1: Mallard vs Gadwall
+mallard_gadwall_evidence <- breeding_evidence[c(16, 4, 7, 9, 1, 5, 18, 6, 3)]
+species <- c("Mallard", "Gadwall")
 
-plot_function(species, mallard_gadwall_evidence, month, month_key, "month")
+plot_function(species, mallard_gadwall_evidence, "week", week_key)
 ```
 

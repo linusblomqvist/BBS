@@ -32,11 +32,14 @@ data$day <- day(data$Date)
 # Get unique types of breeding evidence
 breeding_evidence <- unique(data$Breeding.Evidence)
 
-# week and month key
+# Week and month key
 week_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"), by = "weeks"),
                        week = 1:53)
 month_key <- data.frame(floor_day = seq(as.Date("2021-1-15"), as.Date("2021-12-31"), by = "months"),
                        month = 1:12)
+
+# Floor day is just a date in 2021 that corresponds to a given week (1-53)
+# or month (1-12). This is so that the x axis retains a date format
 
 ```
 
@@ -45,12 +48,12 @@ month_key <- data.frame(floor_day = seq(as.Date("2021-1-15"), as.Date("2021-12-3
 ## Scatter / smoothed means plot function
 
 plot_function <- function(species, breeding_evidence, time_aggr, time_key) {
-  data %>%
-  filter(Common.Name %in% species) %>%
-  filter(Breeding.Evidence %in% breeding_evidence) %>%
-  group_by(!!as.name(time_aggr), Common.Name) %>%
-  tally() %>%
-  left_join(time_key, by = time_aggr) %>%
+  data %>% # start with full dataset
+  filter(Common.Name %in% species) %>% # only include select species
+  filter(Breeding.Evidence %in% breeding_evidence) %>% # only certain kinds of evidence
+  group_by(!!as.name(time_aggr), Common.Name) %>% # summarize over weeks or months, and by species name
+  tally() %>% # count the number of observations
+  left_join(time_key, by = time_aggr) %>% # merge a date onto the week/month number
   ggplot(aes(x = floor_day, y = n, color = Common.Name)) +
   geom_point() +
   labs(x = "Date",
@@ -59,15 +62,13 @@ plot_function <- function(species, breeding_evidence, time_aggr, time_key) {
   geom_smooth(span = 1,
               se = FALSE)
 }
-
-
 ```
 
 ```{r}
 # Graph example 1: Mallard vs Gadwall
-mallard_gadwall_evidence <- breeding_evidence[c(16, 4, 7, 9, 1, 5, 18, 6, 3)]
-species <- c("Mallard", "Gadwall")
-
-plot_function(species, mallard_gadwall_evidence, "week", week_key)
+plot_function(c("Mallard", "Gadwall"), 
+              breeding_evidence[c(16, 4, 7, 9, 1, 5, 18, 6, 3)],
+              "week", # could also choose month
+              week_key) # if month above, put in "month_key"
 ```
 

@@ -53,8 +53,9 @@ plot_function <- function(species, breeding_evidence, time_aggr, time_key) {
   left_join(time_key, by = time_aggr) %>%
   ggplot(aes(x = floor_day, y = n, color = Common.Name)) +
   geom_point() +
-  labs(x = "date",
-       y = "count") +
+  labs(x = "Date",
+       y = "Number of observations",
+       color = "Species") +
   geom_smooth(span = 1,
               se = FALSE)
 }

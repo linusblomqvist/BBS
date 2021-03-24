@@ -1,13 +1,15 @@
 ---
 title: "Santa Barbara Breeding Bird Study: Graphs"
 author: "Linus Blomqvist"
-date: "3/16/2021"
-output: html_document
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 ```
 
 ```{r include = FALSE}
@@ -16,59 +18,421 @@ library(lubridate)
 library(gridExtra)
 ```
 
-
 ```{r}
 # Read in data
 data <- read.csv("BBS_data.csv")
+
+# Change date for erroneous Allen's Hummingbird observation
+data$Date[data$Record.Number == "1043"] <- as.Date("2006-02-10")
+
+# Change data for Red-tailed Hawk observation
+data$Date[data$Record.Number == "2441"] <- as.Date("2009-04-07")
 
 # Standardize date format
 data$Date <- dmy(data$Date)
 
 # Make a new variables for week, month, day
-data$week <- week(data$Date)
-data$month <- month(data$Date)
-data$day <- day(data$Date)
+data$Week <- week(data$Date)
+data$Month <- month(data$Date)
+data$Day <- day(data$Date)
 
 # Get unique types of breeding evidence
 breeding_evidence <- unique(data$Breeding.Evidence)
 
+# Note: Index 5 and 27 both refer to fledgling under parental care
+
 # Week and month key
-week_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"), by = "weeks"),
-                       week = 1:53)
-month_key <- data.frame(floor_day = seq(as.Date("2021-1-15"), as.Date("2021-12-31"), by = "months"),
-                       month = 1:12)
+week_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"),
+                                       by = "weeks"), Week = 1:53)
+month_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"),
+                                        by = "months"), Month = 1:12)
+
+week_key_Dec <- data.frame(floor_day = seq(as.Date("2020-12-1"), as.Date("2021-11-30"),
+                                       by = "weeks"), Week = c(50:53, 1:49))
+month_key_Dec <- data.frame(floor_day = seq(as.Date("2020-12-1"), as.Date("2021-11-30"),
+                                        by = "months"), Month = c(12,1:11))
 
 # Floor day is just a date in 2021 that corresponds to a given week (1-53)
 # or month (1-12). This is so that the x axis retains a date format
+```
 
+```{r}
+# Nojoqui Falls data on Starlings and Purple Martins
+nojoqui <- rbind(read.csv("PUMA.csv"), read.csv("EUST.csv"))
+
+# Make dummy in main dataset for Nojoqui records
+data$Nojoqui <- ifelse(data$Record.Number %in% nojoqui$Record.Number, 1, 0)
+
+# Find erroneous observation
+puma_error <- data %>%
+  filter(Common.Name == "Purple Martin") %>%
+  filter(Month == 3) %>%
+  select(Record.Number) %>%
+  as.numeric()
+
+# Delete this observation
+data <- data[data$Record.Number != puma_error,]
+```
+
+```{r}
+# Theme template
+standard_theme <- theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          text = element_text(size = 15),
+          plot.title = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
 ```
 
 
 ```{r}
-## Scatter / smoothed means plot function
-
-plot_function <- function(species, breeding_evidence, time_aggr, time_key) {
+# Single species
+single_species_plot_function <- function(species, breeding_evidence, time_aggr, time_key) {
+  n_obs <- nrow(filter(data, Common.Name == species, Breeding.Evidence %in% breeding_evidence))
   data %>% # start with full dataset
-  filter(Common.Name %in% species) %>% # only include select species
+  filter(Common.Name == species) %>% # only include select species
   filter(Breeding.Evidence %in% breeding_evidence) %>% # only certain kinds of evidence
+  group_by(!!as.name(time_aggr)) %>% # summarize over weeks or months
+  tally() %>% # count the number of observations
+  left_join(time_key, by = time_aggr) %>% # merge a date onto the week/month number
+  ggplot(aes(x = floor_day, y = n)) +
+  geom_point() +
+  labs(title = "Breeding Phenology",
+       subtitle = species,
+       x = "Date",
+       y = str_c("Observations Per ", time_aggr),
+       caption = str_c("n = ", n_obs, sep = "")) +
+    theme_light() +
+    standard_theme +
+    theme(legend.position = "none") +
+    scale_x_date(date_labels = "%b", date_breaks = "1 month")
+}
+```
+
+Scaly-breasted Munia: all evidence used
+```{r}
+# Scaly-breasted Munia
+single_species_plot_function("Scaly-breasted Munia", 
+              breeding_evidence,
+              "Month",
+              month_key) +
+  geom_smooth(span = 0.7, # choose smoothness of the line
+              se = FALSE,
+              color = "black")
+```
+
+Eurasia Collared-Dove: all evidence used
+```{r}
+# Eurasian Collared-Dove
+single_species_plot_function("Eurasian Collared-Dove", 
+              breeding_evidence,
+              "Month",
+              month_key) +
+  scale_y_continuous(breaks = c(0, 3, 6, 9))
+```
+
+```{r}
+# Single species with multiple categories of evidence: Red-tailed Hawk
+# This is not yet generalizable (work in progress!)
+
+# Select breeding evidence categories
+rtha_evidence <- breeding_evidence[c(22,4,3,1,5,9,15,18,27)]
+
+# Group this into two
+data$rtha_evidence_cat <- rep(NA, nrow(data))
+data$rtha_evidence_cat[data$Breeding.Evidence %in% breeding_evidence[c(22,4,3)]] <- "Pre-fledge"
+data$rtha_evidence_cat[data$Breeding.Evidence %in% breeding_evidence[c(1,5,9,15,18,27)]] <- "Post-fledge"
+data$rtha_evidence_cat <- factor(data$rtha_evidence_cat, levels = c("Pre-fledge", "Post-fledge"))
+
+# Plot function
+single_species_mult_ev_plot_function <- function(species, breeding_evidence, time_aggr, time_key) {
+  data %>% # start with full dataset
+  filter(Common.Name == species) %>% # only include select species
+  filter(Breeding.Evidence %in% breeding_evidence) %>% # only certain kinds of evidence
+  group_by(!!as.name(time_aggr), rtha_evidence_cat) %>% # summarize over weeks or months
+  tally() %>% # count the number of observations
+  left_join(time_key, by = time_aggr) %>% # merge a date onto the week/month number
+  ggplot(aes(x = floor_day, y = n, color = rtha_evidence_cat)) +
+  geom_point() +
+  labs(title = "Breeding Phenology",
+       subtitle = species,
+       x = "Date",
+       y = str_c("Observations Per ", time_aggr),
+       caption = str_c("n = ", nrow(filter(data, Common.Name == species, 
+                          Breeding.Evidence %in% breeding_evidence)), sep = ""),
+       color = element_blank()) +
+    theme_light() +
+    standard_theme +
+    theme(legend.position = "bottom") +
+    scale_x_date(date_labels = "%b", date_breaks = "1 month") +
+    scale_color_brewer(palette = "Dark2")
+}
+```
+
+Red-tailed Hawk evidence used:
+
+```{r}
+rtha_evidence
+```
+
+```{r}
+# Plot
+single_species_mult_ev_plot_function("Red-tailed Hawk",
+                                     rtha_evidence,
+                                     "Week",
+                                     week_key) +
+    geom_smooth(span = 1, # choose smoothness of the line
+              se = FALSE)
+```
+
+
+```{r}
+# Pair with different evidence
+# Species pair
+species_pair_plot_function <- function(dataset, species_1, species_2, breeding_evidence_1,
+                                       breeding_evidence_2, time_aggr, time_key) {
+  df_species_1 <- dataset %>% # select data for species 1
+  filter(Common.Name == species_1) %>%
+  filter(Breeding.Evidence %in% breeding_evidence_1)
+
+df_species_2 <- dataset %>% # select data for species 2
+  filter(Common.Name == species_2) %>%
+  filter(Breeding.Evidence %in% breeding_evidence_2)
+
+df_both <- rbind(df_species_1, df_species_2) # merge data for both species
+
+# Create caption with number of observations for each species
+n_obs_1 <- nrow(filter(data, Common.Name == species_1, Breeding.Evidence %in% breeding_evidence_1))
+n_obs_2 <- nrow(filter(data, Common.Name == species_2, Breeding.Evidence %in% breeding_evidence_2))
+n_caption <- str_c(species_1, " n = ", n_obs_1, "; ", species_2, " n = ", n_obs_2)
+
+  df_both %>%
   group_by(!!as.name(time_aggr), Common.Name) %>% # summarize over weeks or months, and by species name
   tally() %>% # count the number of observations
   left_join(time_key, by = time_aggr) %>% # merge a date onto the week/month number
   ggplot(aes(x = floor_day, y = n, color = Common.Name)) +
   geom_point() +
-  labs(x = "Date",
-       y = "Number of observations",
-       color = "Species") +
-  geom_smooth(span = 1,
+  labs(title = "Breeding Phenology",
+       x = "Date",
+       y = str_c("Observations Per ", time_aggr),
+       color = element_blank(),
+       caption = n_caption,
+       subtitle = str_c(species_1, " and ", species_2)) +
+    theme_light() +
+    standard_theme +
+    theme(legend.position = "bottom") +
+    scale_x_date(date_labels = "%b", date_breaks = "1 month") +
+    scale_color_brewer(palette = "Set1")
+}
+```
+
+
+```{r}
+# Mallard vs Gadwall
+evidence_mallard <- breeding_evidence[c(16,4,7,9,1,5,18,20,6,3,27)]
+evidence_gadwall <- breeding_evidence[c(16,4,7,5,18,3,27)]
+
+species_pair_plot_function(data,
+                           "Gadwall", 
+                           "Mallard", 
+                           evidence_mallard,
+                           evidence_gadwall,
+                           "Week", 
+                           week_key) +
+    geom_smooth(span = 1, # choose smoothness of the line
               se = FALSE)
+```
+
+Mallard evidence used:
+
+```{r}
+evidence_mallard
+```
+
+Gadwall evidence used:
+
+```{r}
+evidence_gadwall
+```
+
+
+```{r}
+# Red-tailed vs Red-shouldered Hawk
+evidence_rtha <- breeding_evidence[c(16,13,10,7,9,15,1,5,18,12,3,21,17,27)]
+evidence_rsha <- breeding_evidence[c(16,13,10,9,15,1,5,18,12,3,17,27)]
+
+species_pair_plot_function(data,
+                           "Red-shouldered Hawk", 
+                           "Red-tailed Hawk", 
+                           evidence_rtha,
+                           evidence_rsha, 
+                           "Week", 
+                           week_key_Dec) +
+    geom_smooth(span = 0.7, # choose smoothness of the line
+              se = FALSE)
+```
+
+Red-shouldered Hawk evidence used:
+
+```{r}
+evidence_rsha
+```
+
+Red-tailed Hawk evidence used:
+
+```{r}
+evidence_rtha
+```
+
+
+
+
+
+```{r}
+# Anna's vs Allen's Hummingbird
+evidence_anhu <- breeding_evidence[c(16,13,22,10,7,9,15,1,5,18,12,3,21,17,27)]
+evidence_alhu <- breeding_evidence[c(16,13,22,10,9,15,1,5,18,12,3,17,27)]
+
+species_pair_plot_function(data,
+                           "Allen's Hummingbird", 
+                           "Anna's Hummingbird", 
+                           evidence_anhu,
+                           evidence_alhu, 
+                           "Week", 
+                           week_key_Dec) +
+    geom_smooth(span = 0.7, # choose smoothness of the line
+              se = FALSE)
+```
+
+Allen's Hummingbird evidence used:
+
+```{r}
+evidence_alhu
+```
+
+Anna's hummingbird evidence used:
+
+```{r}
+evidence_anhu
+```
+
+
+
+```{r}
+# Starling and Purple Martin at Nojoqui
+
+# Need to extract the types of breeding evidence for both
+eust_evidence <- unique(nojoqui$Breeding.Evidence[nojoqui$Common.Name == "European Starling"])
+puma_evidence <- unique(nojoqui$Breeding.Evidence[nojoqui$Common.Name == "Purple Martin"])
+
+species_pair_plot_function(filter(data, Nojoqui == 1),
+                           "European Starling", 
+                           "Purple Martin", 
+                           eust_evidence,
+                           puma_evidence, 
+                           "Week", 
+                           week_key_Dec) +
+    geom_smooth(span = 0.8, # choose smoothness of the line
+              se = FALSE)
+```
+
+European Starling evidence used:
+
+```{r}
+eust_evidence
+```
+
+Purple Martin evidence used:
+
+```{r}
+puma_evidence
+```
+
+
+
+```{r}
+# Group of birds eg native species, raptors
+
+species_group_plot_function <- function(species, breeding_evidence, time_aggr, time_key) {
+  n_obs <- nrow(filter(data, Common.Name %in% species, Breeding.Evidence %in% breeding_evidence))
+  data %>% # start with full dataset
+  filter(Common.Name %in% species) %>% # only include select species
+  filter(Breeding.Evidence %in% breeding_evidence) %>% # only certain kinds of evidence
+  group_by(!!as.name(time_aggr)) %>% # summarize over weeks or months
+  tally() %>% # count the number of observations
+  left_join(time_key, by = time_aggr) %>% # merge a date onto the week/month number
+  ggplot(aes(x = floor_day, y = n)) +
+  geom_point(color = "black") +
+  labs(title = "Breeding Phenology",
+       x = "Date",
+       y = str_c("Observations Per ", time_aggr),
+       caption = str_c("n = ", n_obs, sep = "")) +
+    theme_light() +
+    standard_theme +
+    theme(legend.position = "none") +
+    scale_x_date(date_labels = "%b", date_breaks = "1 month")
 }
 ```
 
 ```{r}
-# Graph example 1: Mallard vs Gadwall
-plot_function(c("Mallard", "Gadwall"), 
-              breeding_evidence[c(16, 4, 7, 9, 1, 5, 18, 6, 3)],
-              "week", # could also choose month
-              week_key) # if month above, put in "month_key"
+# All native
+all_species <- unique(data$Common.Name)
+native_species <- all_species[!(all_species %in% c("European Starling", "Swan Goose",
+                                                 "Eurasian Collared-Dove"))]
+
+species_group_plot_function(native_species,
+                            breeding_evidence,
+                            "Week", # could also choose month
+                            week_key) +
+  geom_smooth(span = 0.3, # choose smoothness of the line
+              se = FALSE,
+              color = "black",
+              lwd = 0.8) + # if month above, put in "month_key"
+  labs(subtitle = "All native species")
 ```
 
+All native species evidence used: all
+
+```{r}
+# Raptors
+raptors <- c("American Kestrel", "Cooper's Hawk", "Northern Goshawk", 
+             "Northern Harrier", "Peregrine Falcon", "Red-shouldered Hawk",
+             "Red-tailed Hawk", "Sharp-shinned Hawk", "Swainson's Hawk",
+             "Turkey Vulture", "White-tailed Kite")
+
+raptor_evidence <- breeding_evidence[c(16,13,14,23,10,4,7,15,1,5,18,6,12,3,27)]
+
+species_group_plot_function(raptors,
+                            raptor_evidence,
+                            "Week", # could also choose month
+                            week_key_Dec) +
+  geom_smooth(span = 0.6, # choose smoothness of the line
+              se = FALSE,
+              color = "black",
+              lwd = 0.8) + # if month above, put in "month_key"
+  labs(subtitle = "All raptors except owls and eagles")
+```
+
+All raptors evidence used:
+
+```{r}
+raptor_evidence
+```
+
+
+```{r}
+# Violin plot with all native species
+data$breeding_intensity <- 1
+data %>%
+  left_join(week_key, by = "Week") %>%
+  ggplot(aes(x = breeding_intensity, y = floor_day)) + 
+  geom_violin(fill = "lightblue") +
+  coord_flip() +
+  theme_light() +
+  standard_theme +
+  theme(axis.text.y=element_blank()) +
+  labs(title = "Breeding Season",
+       x = "Relative breeding intensity",
+       y = "Date",
+       caption = "A wider plot indicates a larger number of breeding observations in a given week") +
+  scale_y_date(date_labels = "%b", date_breaks = "1 month")
+```

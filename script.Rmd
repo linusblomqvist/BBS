@@ -19,7 +19,7 @@ library(gridExtra)
 ## Introduction
 Here, I explore ways to present data from the Santa Barbara Breeding Bird Study. Since this is exploratory, it should not be cited.
 
-```{r eval = FALSE}
+```{r}
 # Read in data
 data_full <- read.csv("BBS_data.csv")
 ```
@@ -50,7 +50,7 @@ There are `r length(unique(data_full$Breeding.Evidence))` types of breeding evid
 In the code below, I group the evidence types in the dataset into those categories, labeled by the corresponding color in the previous list, and then make a categorical variable for the five groups.
 
 
-```{r eval = FALSE}
+```{r}
 # Get unique types of breeding evidence
 breeding_evidence_cat <- unique(data_full$Breeding.Evidence)
 
@@ -224,7 +224,7 @@ month_key <- data.frame(floor_day = seq(as.Date("2021-1-15"), as.Date("2021-12-3
 ```
 
 
-```{r}
+```{r eval = FALSE}
 # OK THIS MIGHT ACTUALLY WORK
 
 # Read in data
@@ -299,7 +299,7 @@ data$floor_date <- floor_date(data$date, "week")
 
 ## Figure templates
 
-```{r eval = FALSE}
+```{r}
 # Density
 density_plot <- function(species) {
   ggplot(filter(breeding_evidence_by_day, Common.Name == species), aes(x = date, fill = evidence_category)) +
@@ -385,6 +385,11 @@ boxplot_bird <- function(species) {
         legend.position = "right")
 }
 ```
+
+```{r}
+boxplot_bird("Red-tailed Hawk")
+```
+
 
 ```{r eval = FALSE}
 density_plot("Cooper's Hawk")

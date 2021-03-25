@@ -28,6 +28,9 @@ data$Date[data$Record.Number == "1043"] <- as.Date("2006-02-10")
 # Change data for Red-tailed Hawk observation
 data$Date[data$Record.Number == "2441"] <- as.Date("2009-04-07")
 
+# Delete erroneous record for RTHA
+data <- data[data$Record.Number != 7170,]
+
 # Standardize date format
 data$Date <- dmy(data$Date)
 
@@ -333,6 +336,9 @@ species_pair_plot_function(filter(data, Nojoqui == 1),
                            week_key_Dec) +
     geom_smooth(span = 0.8, # choose smoothness of the line
               se = FALSE)
+
+# The code currently generates the n for Starling that corresponds to all records in the county.
+# I need to include an option for Nojoqui in the function for a future iteration
 ```
 
 European Starling evidence used:

@@ -11,7 +11,11 @@ ui <- fluidPage(
     sidebarPanel(
       selectInput("species", "Species:", 
                   choices=unique(bbs_df$Common.Name)),
-      hr()#,
+      hr(),
+      selectInput("evidence", "Breeding evidence:",
+                  choices = breeding_evidence,
+                  multiple = TRUE,
+                  selected = breeding_evidence)
       #helpText("Data from the National Audubon Society, with adjustments to account for changing taxonomy, erroneous records, and the like. Web app by Linus Blomqvist. ")
     ),
     # Create a spot for the barplot

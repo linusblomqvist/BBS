@@ -8,7 +8,7 @@ server <- function(input, output) {
   output$trendline <- renderPlot({
     # Render a line plot
     single_species_plot_function(select_species = input$species, 
-                                 select_breeding_evidence = breeding_evidence,
+                                 select_breeding_evidence = input$evidence,
                                  time_aggr = "Month",
                                  time_key = month_key)
   })

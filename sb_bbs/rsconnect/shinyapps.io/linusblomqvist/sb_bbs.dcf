@@ -1,0 +1,10 @@
+name: sb_bbs
+title:
+username: linusblomqvist
+account: linusblomqvist
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 11051664
+bundleId: 8195903
+url: https://linusblomqvist.shinyapps.io/sb_bbs/
+version: 1

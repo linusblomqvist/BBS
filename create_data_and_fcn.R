@@ -3,7 +3,7 @@ library(lubridate)
 library(gridExtra)
 
 # Read in data
-data <- read.csv("BBS_data.csv")
+bbs_df <- read.csv("BBS_data.csv")
 
 # # Change date for erroneous Allen's Hummingbird observation
 # data$Date[data$Record.Number == "1043"] <- as.Date("2006-02-10")
@@ -12,24 +12,24 @@ data <- read.csv("BBS_data.csv")
 # data$Date[data$Record.Number == "2441"] <- as.Date("2009-04-07")
 
 # Delete erroneous record for RTHA
-data <- data[data$Record.Number != 7170,]
+bbs_df <- bbs_df[bbs_df$Record.Number != 7170,]
 
 # Weird date
-data <- data[data$Record.Number != 9535,]
+bbs_df <- bbs_df[bbs_df$Record.Number != 9535,]
 
 # Standardize date format
-data$Date <- dmy(data$Date)
+bbs_df$Date <- dmy(bbs_df$Date)
 
-data <- data %>%
+bbs_df <- bbs_df %>%
   filter(!(is.na(Date)))
 
 # Make a new variables for week, month, day
-data$Week <- week(data$Date)
-data$Month <- month(data$Date)
-data$Day <- day(data$Date)
+bbs_df$Week <- week(bbs_df$Date)
+bbs_df$Month <- month(bbs_df$Date)
+bbs_df$Day <- day(bbs_df$Date)
 
 # Get unique types of breeding evidence
-breeding_evidence <- unique(data$Breeding.Evidence)
+breeding_evidence <- unique(bbs_df$Breeding.Evidence)
 
 # Note: Index 5 and 27 both refer to fledgling under parental care
 
@@ -55,17 +55,17 @@ standard_theme <- theme(panel.grid.major.x = element_blank(),
                         plot.subtitle = element_text(hjust = 0.5))
 
 # Single species
-single_species_plot_function <- function(species, breeding_evidence, time_aggr, time_key) {
-  n_obs <- nrow(filter(data, Common.Name == species, Breeding.Evidence %in% breeding_evidence))
-  data %>% # start with full dataset
-    filter(Common.Name == species) %>% # only include select species
-    filter(Breeding.Evidence %in% breeding_evidence) %>% # only certain kinds of evidence
+single_species_plot_function <- function(select_species, select_breeding_evidence, time_aggr, time_key) {
+  n_obs <- nrow(filter(bbs_df, Common.Name == select_species, Breeding.Evidence %in% select_breeding_evidence))
+  bbs_df %>% # start with full dataset
+    filter(Common.Name == select_species) %>% # only include select species
+    filter(Breeding.Evidence %in% select_breeding_evidence) %>% # only certain kinds of evidence
     group_by(!!as.name(time_aggr)) %>% # summarize over weeks or months
     tally() %>% # count the number of observations
     left_join(time_key, by = time_aggr) %>% # merge a date onto the week/month number
     ggplot(aes(x = floor_day, y = n)) +
     geom_point() +
-    labs(title = species,
+    labs(title = select_species,
          x = "Date",
          y = str_c("Observations Per ", time_aggr),
          caption = str_c("n = ", n_obs, sep = "")) +
@@ -74,3 +74,6 @@ single_species_plot_function <- function(species, breeding_evidence, time_aggr, 
     theme(legend.position = "none") +
     scale_x_date(date_labels = "%b", date_breaks = "1 month")
 }
+
+save(bbs_df, month_key, month_key_Dec, standard_theme, week_key, week_key_Dec,
+     breeding_evidence, single_species_plot_function, file = "sb_bbs/objects.Rdata")

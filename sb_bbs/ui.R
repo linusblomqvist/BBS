@@ -1,5 +1,3 @@
-
-
 # Use a fluid Bootstrap layout
 ui <- fluidPage(    
   
@@ -12,11 +10,10 @@ ui <- fluidPage(
     # Define the sidebar with one input
     sidebarPanel(
       selectInput("species", "Species:", 
-                  choices=unique(data$Common.Name)),
+                  choices=unique(bbs_df$Common.Name)),
       hr()#,
       #helpText("Data from the National Audubon Society, with adjustments to account for changing taxonomy, erroneous records, and the like. Web app by Linus Blomqvist. ")
     ),
-    
     # Create a spot for the barplot
     mainPanel(
       plotOutput("trendline")#,

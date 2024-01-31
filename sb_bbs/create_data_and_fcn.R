@@ -75,5 +75,5 @@ single_species_plot_function <- function(select_species, select_breeding_evidenc
     scale_x_date(date_labels = "%b", date_breaks = "1 month")
 }
 
-save(bbs_df, month_key, month_key_Dec, standard_theme, week_key, week_key_Dec,
-     breeding_evidence, single_species_plot_function, file = "sb_bbs/objects.Rdata")
+# save(bbs_df, month_key, month_key_Dec, standard_theme, week_key, week_key_Dec,
+#      breeding_evidence, single_species_plot_function, file = "sb_bbs/objects.Rdata")

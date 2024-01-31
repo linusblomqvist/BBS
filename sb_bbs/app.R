@@ -1,7 +1,6 @@
 library(shiny)
 library(tidyverse)
-load("objects.Rdata")
-
+source("create_data_and_fcn.R")
 
 # Define a server for the Shiny app
 server <- function(input, output) {

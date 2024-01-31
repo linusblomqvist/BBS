@@ -1,3 +1,5 @@
+load("objects.Rdata")
+
 # Use a fluid Bootstrap layout
 ui <- fluidPage(    
   

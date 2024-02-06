@@ -4,7 +4,5 @@ library(rsconnect)
 deployApp()
 
 library(shiny)
-# source("server.R")
-# source("ui.R")
 source("app.R")
 shinyApp(ui, server)

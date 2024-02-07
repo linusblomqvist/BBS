@@ -24,6 +24,8 @@ server <- function(input, output) {
 # Use a fluid Bootstrap layout
 ui <- fluidPage(    
   
+  tags$head(includeHTML("google-analytics.Rhtml")),
+  
   # Give the page a title
   titlePanel("Santa Barbara Breeding Bird Study"),
   

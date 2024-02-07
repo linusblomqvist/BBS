@@ -4,6 +4,7 @@ library(gridExtra)
 library(janitor)
 library(RColorBrewer)
 library(DT)
+library(magrittr)
 
 # Read in data
 bbs_df <- read_csv("BBS_data_Jan_2024.csv")
@@ -13,7 +14,7 @@ bbs_df <- janitor::clean_names(bbs_df)
 
 bbs_df <- bbs_df %>%
   select(record_number, common_name, locality, observation_date, breeding_evidence, 
-         observation_details)
+         observation_details, nest_structure_or_substrate)
 
 # Standardize date format
 bbs_df$observation_date <- dmy(bbs_df$observation_date)
@@ -104,11 +105,43 @@ month_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31
 # Taxonomic order
 aba_list <- aba_list %>%
   select(species) %>%
-  rename(common_name = species)
+  rename(common_name = species) %>%
+  mutate(common_name = case_when(
+    common_name == "Pacific-slope Flycatcher" ~ "Western Flycatcher",
+    .default = common_name
+  )) %>%
+  filter(common_name != "Cordilleran Flycatcher")
 
 bbs_df <- left_join(aba_list, bbs_df, by = "common_name") %>%
   filter(!is.na(record_number)) %>%
   select(-record_number)
+
+# Clean up empty spaces in nest_structure
+bbs_df <- bbs_df %>%
+  mutate(nest_structure_or_substrate = case_when(
+    str_detect(nest_structure_or_substrate, regex("^\\s*?$")) == TRUE ~ NA,
+    .default = nest_structure_or_substrate
+  ))
+
+# # Nest structure
+# by_nest_structure <- bbs_df %>% 
+#   filter(!is.na(nest_structure_or_substrate)) %>% 
+#   group_by(week, nest_structure_or_substrate) %>% 
+#   summarize(n = n())
+# 
+# obs_by_nest_structure <- bbs_df %>%
+#   filter(!is.na(nest_structure_or_substrate)) %>%
+#   group_by(nest_structure_or_substrate) %>%
+#   summarize(n = n()) %>%
+#   arrange(desc(n))
+# 
+# write.csv(obs_by_nest_structure, "nest_structure.csv")
+# 
+# bbs_df %>%
+#   filter(str_detect(bbs_df$nest_structure_or_substrate, regex("^\\s*?$", ignore_case = T)) == TRUE) %$%
+#   unique(nest_structure_or_substrate)
+
+
 
 # Theme template
 standard_theme <- theme(panel.grid.major.x = element_blank(),
@@ -149,7 +182,10 @@ single_species_plot_function <- function(select_species, time_aggr) {
     standard_theme +
     theme(legend.position = "bottom",
           legend.title=element_blank()) +
-    scale_x_date(date_labels = "%b", date_breaks = "1 month") +
+    scale_x_date(date_labels = "%b", 
+                 date_breaks = "1 month", 
+                 limits = as_date(c("2021-01-01", "2021-12-31")),
+                 minor_breaks = "1 week") +
     guides(fill = guide_legend(nrow = 5, byrow = TRUE)) +
     col_scale
 }

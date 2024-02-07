@@ -5,6 +5,7 @@ library(janitor)
 library(RColorBrewer)
 library(DT)
 library(magrittr)
+library(shinythemes)
 
 # Read in data
 bbs_df <- read_csv("BBS_data_Jan_2024.csv")
@@ -187,10 +188,11 @@ single_species_plot_function <- function(select_species, time_aggr) {
                  limits = as_date(c("2021-01-01", "2021-12-31")),
                  minor_breaks = "1 week") +
     guides(fill = guide_legend(nrow = 5, byrow = TRUE)) +
-    col_scale
+    scale_fill_discrete(drop = FALSE,
+                        limits = levels(bbs_df$breeding_evidence_type))
 }
 
-# single_species_plot_function("Virginia Rail", "week")
+# single_species_plot_function("California Towhee", "week")
 
 # save(bbs_df, month_key, month_key_Dec, standard_theme, week_key, week_key_Dec,
 #      breeding_evidence, single_species_plot_function, file = "sb_bbs/objects.Rdata")

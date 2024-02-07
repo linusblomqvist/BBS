@@ -19,15 +19,26 @@ server <- function(input, output) {
                   colnames = c("Species", "Location", "Date", "Evidence type"),
                   rownames = FALSE)
   )
+  
+  output$sp_comp_1 <- renderPlot({
+    # Render a line plot
+    single_species_plot_function(select_species = input$sp_for_comp_1,
+                                 time_aggr = "week") +
+      theme(legend.position = "none")
+  })
+  
+  output$sp_comp_2 <- renderPlot({
+    # Render a line plot
+    single_species_plot_function(select_species = input$sp_for_comp_2,
+                                 time_aggr = "week")
+  })
+  
 }
 
 # Use a fluid Bootstrap layout
-ui <- fluidPage(    
-  
-  tags$head(includeHTML("google-analytics.Rhtml")),
-  
-  # Give the page a title
-  titlePanel("Santa Barbara Breeding Bird Study"),
+ui <- navbarPage("Santa Barbara Breeding Bird Study", theme = shinytheme("flatly"),
+
+  tabPanel(title = "Single species display",
   
   # Generate a row with a sidebar
   sidebarLayout(      
@@ -41,11 +52,6 @@ ui <- fluidPage(
       selectInput("time_aggr", "By week or month:",
                   choices = c("week", "month"),
                   selected = "week")
-      # selectInput("evidence", "Breeding evidence:",
-      #             choices = breeding_evidence,
-      #             multiple = TRUE,
-      #             selected = breeding_evidence)
-      #helpText("Data from the National Audubon Society, with adjustments to account for changing taxonomy, erroneous records, and the like. Web app by Linus Blomqvist. ")
     ),
     # Create a spot for the barplot
     mainPanel(
@@ -56,6 +62,26 @@ ui <- fluidPage(
     )
     
   )
+),
+tabPanel(title = "Two-species comparison",
+         sidebarLayout(      
+           
+           # Define the sidebar with one input
+           sidebarPanel(
+             selectInput("sp_for_comp_1", "Species 1:", 
+                         choices=unique(bbs_df$common_name),
+                         selected = sample(bbs_df$common_name, 1)),
+           hr(),
+           selectInput("sp_for_comp_2", "Species 2:", 
+                       choices=unique(bbs_df$common_name),
+                       selected = sample(bbs_df$common_name, 1))),
+           # Create a spot for the barplot
+           mainPanel(
+             plotOutput("sp_comp_1"),
+             plotOutput("sp_comp_2")
+           )
+         )
+         )
 )
 
 shinyApp(ui = ui, server = server)

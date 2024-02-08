@@ -1,37 +1,45 @@
 library(shiny)
 library(tidyverse)
+library(ggpubr)
 source("create_data_and_fcn.R")
 
 # Define a server for the Shiny app
 server <- function(input, output) {
   # Fill in the spot we created for a plot
-  output$trendline <- renderPlot({
+  output$trendline <- renderPlot(
     # Render a line plot
     single_species_plot_function(select_species = input$species,
                                  time_aggr = input$time_aggr)
-  })
+  )
   
   output$species_table <- DT::renderDataTable(
     DT::datatable(bbs_df %>%
                     filter(common_name == input$species) %>%
-                    select(common_name, locality, observation_date, breeding_evidence), 
+                    select(locality, observation_date, day_of_year, breeding_evidence), 
                   options = list(pageLength = 10),
-                  colnames = c("Species", "Location", "Date", "Evidence type"),
+                  colnames = c("Location", "Date", "Day of year", "Evidence type"),
                   rownames = FALSE)
   )
   
-  output$sp_comp_1 <- renderPlot({
-    # Render a line plot
+  comp_plot_1 <- reactive({
     single_species_plot_function(select_species = input$sp_for_comp_1,
-                                 time_aggr = "week") +
-      theme(legend.position = "none")
+                                              time_aggr = "week")
   })
   
-  output$sp_comp_2 <- renderPlot({
-    # Render a line plot
+  comp_plot_2 <- reactive({
     single_species_plot_function(select_species = input$sp_for_comp_2,
-                                 time_aggr = "week")
+                                              time_aggr = "week")
   })
+  
+  output$sp_comp_1 <- renderPlot(
+    ggarrange(comp_plot_1(), comp_plot_2(), ncol = 1, nrow = 2, common.legend = TRUE, legend = "bottom"),
+    width = "auto",
+    height = 700
+  )
+
+  output$tree_plot <- renderPlot(
+    tree_by_week_plot(input$tree)
+  )
   
 }
 
@@ -81,6 +89,18 @@ tabPanel(title = "Two-species comparison",
              plotOutput("sp_comp_2")
            )
          )
+         ),
+
+tabPanel(title = "Tree usage",
+         sidebarLayout(
+           sidebarPanel(
+             selectInput("tree", "Tree type",
+                         choices = unique(tree_by_week$tree_type),
+                         selected = sample(unique(tree_by_week$tree_type)))
+           ),
+           mainPanel(
+             plotOutput("tree_plot")
+           ))
          )
 )
 

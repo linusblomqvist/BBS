@@ -6,6 +6,7 @@ library(RColorBrewer)
 library(DT)
 library(magrittr)
 library(shinythemes)
+library(scales)
 
 # Read in data
 bbs_df <- read_csv("BBS_data_Jan_2024.csv")
@@ -124,25 +125,78 @@ bbs_df <- bbs_df %>%
     .default = nest_structure_or_substrate
   ))
 
-# # Nest structure
-# by_nest_structure <- bbs_df %>% 
-#   filter(!is.na(nest_structure_or_substrate)) %>% 
-#   group_by(week, nest_structure_or_substrate) %>% 
-#   summarize(n = n())
-# 
-# obs_by_nest_structure <- bbs_df %>%
-#   filter(!is.na(nest_structure_or_substrate)) %>%
-#   group_by(nest_structure_or_substrate) %>%
-#   summarize(n = n()) %>%
-#   arrange(desc(n))
-# 
-# write.csv(obs_by_nest_structure, "nest_structure.csv")
-# 
-# bbs_df %>%
-#   filter(str_detect(bbs_df$nest_structure_or_substrate, regex("^\\s*?$", ignore_case = T)) == TRUE) %$%
-#   unique(nest_structure_or_substrate)
+# Check common nest structures
+obs_by_nest_structure <- bbs_df %>%
+  filter(!is.na(nest_structure_or_substrate)) %>%
+  group_by(nest_structure_or_substrate) %>%
+  summarize(n = n()) %>%
+  arrange(desc(n))
 
+# oak, sycamore, eucalyptus, pine, willow, palm, cypress, cottonwood, fig, 
 
+tree_search_fcn <- function(tree) {
+  bbs_df %>%
+    filter(str_detect(bbs_df$nest_structure_or_substrate, regex(tree, ignore_case = T)) == TRUE) %$%
+    unique(nest_structure_or_substrate)
+}
+
+oak <- tree_search_fcn("oak")
+sycamore <- tree_search_fcn("sycamore")
+eucalyptus <- tree_search_fcn("eucalyptus")
+pine <- tree_search_fcn("pine")
+willow <- tree_search_fcn("willow")
+palm <- tree_search_fcn("palm")
+cypress <- tree_search_fcn("cypress")
+cottonwood <- tree_search_fcn("cottonwood")
+fig <- tree_search_fcn("fig")
+
+# Create tree type
+bbs_df <- bbs_df %>%
+  mutate(tree_type = case_when(
+    nest_structure_or_substrate %in% oak ~ "Oak",
+    nest_structure_or_substrate %in% sycamore ~ "Sycamore",
+    nest_structure_or_substrate %in% eucalyptus ~ "Eucalyptus",
+    nest_structure_or_substrate %in% pine ~ "Pine",
+    nest_structure_or_substrate %in% willow ~ "Willow",
+    nest_structure_or_substrate %in% palm ~ "Palm",
+    nest_structure_or_substrate %in% cypress ~ "Cypress",
+    nest_structure_or_substrate %in% cottonwood ~ "Cottonwood",
+    nest_structure_or_substrate %in% fig ~ "Fig"
+  ))
+
+# Nest structure
+tree_by_week <- bbs_df %>%
+  filter(!is.na(tree_type)) %>%
+  group_by(week, tree_type) %>%
+  summarize(n = n())
+
+tree_by_week_plot <- function(select_tree) {
+  
+  n_obs <- filter(tree_by_week, tree_type == select_tree) %>%
+    ungroup() %>%
+    summarize(sum(n))
+  
+  left_join(week_key, tree_by_week %>%
+              filter(tree_type == select_tree), by = "week") %>%
+    mutate(n = case_when(is.na(n) ~ 0, .default = n)) %>%
+    ggplot(aes(x = floor_day, y = n)) +
+      geom_line() +
+    labs(title = select_tree,
+         x = "Date",
+         y = "Observations per week",
+         caption = str_c("n = ", n_obs, sep = "")) +
+    theme_light() +
+    standard_theme +
+    scale_x_date(date_labels = "%b", 
+                 date_breaks = "1 month", 
+                 limits = as_date(c("2021-01-01", "2021-12-31")),
+                 minor_breaks = "1 week") +
+    scale_y_continuous(breaks = pretty_breaks())
+}
+
+# Day of year
+bbs_df <- bbs_df %>%
+  mutate(day_of_year = yday(observation_date))
 
 # Theme template
 standard_theme <- theme(panel.grid.major.x = element_blank(),

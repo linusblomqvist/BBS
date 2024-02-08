@@ -75,14 +75,19 @@ bbs_df <- bbs_df %>%
   filter(breeding_evidence %in% breeding_evidence_selected)
 
 bbs_df <- bbs_df %>%
+  mutate(breeding_evidence = case_when(
+    breeding_evidence == "Fledgling Under Parental Care" ~ "Fledgling under Parental Care",
+    .default = breeding_evidence
+  ))
+
+bbs_df <- bbs_df %>%
   mutate(breeding_evidence_type = case_when(
     breeding_evidence %in% c("Carrying Nesting Material", "Nest Building") ~ "Nest construction",
     breeding_evidence %in% c("Copulation", "Egg in Nest") ~ "Copulation and eggs in nest",
     breeding_evidence %in% c("Carrying Food", "Delivering Food to Nest or Cavity", "Nestling in Nest",
                              "Carrying Fecal Sac", "Fledgling out of Nest--Brancher") ~ "Nestling and brancher",
     breeding_evidence %in% c("Family Group in Close Association", "Feeding Fledgling",
-                             "Fledgling Begging", "Fledgling under Parental Care", "Fledgling Under Parental Care",
-                             "Fledgling with Presumed Parent") ~ "Fledglings and families",
+                             "Fledgling Begging", "Fledgling under Parental Care", "Fledgling with Presumed Parent") ~ "Fledglings and families",
     breeding_evidence == "Juvenile Independent" ~ "Juvenile Independent"
   ))
 
@@ -92,8 +97,6 @@ bbs_df <- bbs_df %>%
                                                                             "Nestling and brancher",
                                                                             "Fledglings and families",
                                                                             "Juvenile Independent")))
-
-# https://stackoverflow.com/questions/6919025/how-to-assign-colors-to-categorical-variables-in-ggplot2-that-have-stable-mappin
 
 # Week and month key
 week_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"),
@@ -132,8 +135,6 @@ obs_by_nest_structure <- bbs_df %>%
   summarize(n = n()) %>%
   arrange(desc(n))
 
-# oak, sycamore, eucalyptus, pine, willow, palm, cypress, cottonwood, fig, 
-
 tree_search_fcn <- function(tree) {
   bbs_df %>%
     filter(str_detect(bbs_df$nest_structure_or_substrate, regex(tree, ignore_case = T)) == TRUE) %$%
@@ -157,7 +158,10 @@ bbs_df <- bbs_df %>%
 # Nest structure
 tree_by_week <- bbs_df %>%
   filter(!is.na(tree_type)) %>%
-  group_by(week, tree_type, breeding_evidence_type) %>%
+  filter(breeding_evidence %in% c("Egg in Nest", "Nestling in Nest", "Fledgling out of Nest--Brancher", 
+                                  "Nest Building", "Carrying Nesting Material", "Delivering Food to Nest or Cavity")) %>%
+  mutate(breeding_evidence = factor(breeding_evidence)) %>%
+  group_by(week, tree_type, breeding_evidence) %>%
   summarize(n = n())
 
 tree_by_week_plot <- function(select_tree) {
@@ -169,7 +173,7 @@ tree_by_week_plot <- function(select_tree) {
   left_join(week_key, tree_by_week %>%
               filter(tree_type == select_tree), by = "week") %>%
     mutate(n = case_when(is.na(n) ~ 0, .default = n)) %>%
-    ggplot(aes(x = floor_day, y = n, fill = breeding_evidence_type)) +
+    ggplot(aes(x = floor_day, y = n, fill = breeding_evidence)) +
     geom_bar(position = "stack", stat = "identity") +
     labs(title = select_tree,
          x = "Date",
@@ -184,9 +188,9 @@ tree_by_week_plot <- function(select_tree) {
                  limits = as_date(c("2021-01-01", "2021-12-31")),
                  minor_breaks = "1 week") +
     scale_y_continuous(breaks = pretty_breaks()) +
-    guides(fill = guide_legend(nrow = 5, byrow = TRUE)) +
-    scale_fill_discrete(drop = TRUE,
-                        limits = levels(bbs_df$breeding_evidence_type))
+    scale_fill_discrete(drop = FALSE,
+                        limits = levels(bbs_df$breeding_evidence),
+                        na.translate = F)
 }
 
 # Day of year

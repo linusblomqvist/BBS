@@ -62,7 +62,7 @@ ui <- navbarPage("Santa Barbara Breeding Bird Study", theme = shinytheme("flatly
       plotOutput("trendline"),
       DT::dataTableOutput("species_table"),
       HTML("<br>"),
-      HTML("<br><p>For more information, see <a href = https://santabarbaraaudubon.org/santa-barbara-county-breeding-bird-study/>https://santabarbaraaudubon.org/santa-barbara-county-breeding-bird-study</a>. Web app by Linus Blomqvist.<p>")
+      HTML("<br><p>For more information, see <a href = https://santabarbaraaudubon.org/santa-barbara-county-breeding-bird-study/>https://santabarbaraaudubon.org/santa-barbara-county-breeding-bird-study</a>. Web app by Linus Blomqvist. Code <a href = https://github.com/linusblomqvist/BBS/tree/main/sb_bbs>here.</a><p>")
     )
     
   )

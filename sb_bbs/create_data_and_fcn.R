@@ -140,34 +140,24 @@ tree_search_fcn <- function(tree) {
     unique(nest_structure_or_substrate)
 }
 
-oak <- tree_search_fcn("oak")
-sycamore <- tree_search_fcn("sycamore")
-eucalyptus <- tree_search_fcn("eucalyptus")
-pine <- tree_search_fcn("pine")
-willow <- tree_search_fcn("willow")
-palm <- tree_search_fcn("palm")
-cypress <- tree_search_fcn("cypress")
-cottonwood <- tree_search_fcn("cottonwood")
-fig <- tree_search_fcn("fig")
-
 # Create tree type
 bbs_df <- bbs_df %>%
   mutate(tree_type = case_when(
-    nest_structure_or_substrate %in% oak ~ "Oak",
-    nest_structure_or_substrate %in% sycamore ~ "Sycamore",
-    nest_structure_or_substrate %in% eucalyptus ~ "Eucalyptus",
-    nest_structure_or_substrate %in% pine ~ "Pine",
-    nest_structure_or_substrate %in% willow ~ "Willow",
-    nest_structure_or_substrate %in% palm ~ "Palm",
-    nest_structure_or_substrate %in% cypress ~ "Cypress",
-    nest_structure_or_substrate %in% cottonwood ~ "Cottonwood",
-    nest_structure_or_substrate %in% fig ~ "Fig"
+    nest_structure_or_substrate %in% tree_search_fcn("oak") ~ "Oak",
+    nest_structure_or_substrate %in% tree_search_fcn("sycamore") ~ "Sycamore",
+    nest_structure_or_substrate %in% tree_search_fcn("eucalyptus") ~ "Eucalyptus",
+    nest_structure_or_substrate %in% tree_search_fcn("pine") ~ "Pine",
+    nest_structure_or_substrate %in% tree_search_fcn("willow") ~ "Willow",
+    nest_structure_or_substrate %in% tree_search_fcn("palm") ~ "Palm",
+    nest_structure_or_substrate %in% tree_search_fcn("cypress") ~ "Cypress",
+    nest_structure_or_substrate %in% tree_search_fcn("cottonwood") ~ "Cottonwood",
+    nest_structure_or_substrate %in% tree_search_fcn("fig") ~ "Fig"
   ))
 
 # Nest structure
 tree_by_week <- bbs_df %>%
   filter(!is.na(tree_type)) %>%
-  group_by(week, tree_type) %>%
+  group_by(week, tree_type, breeding_evidence_type) %>%
   summarize(n = n())
 
 tree_by_week_plot <- function(select_tree) {
@@ -179,19 +169,24 @@ tree_by_week_plot <- function(select_tree) {
   left_join(week_key, tree_by_week %>%
               filter(tree_type == select_tree), by = "week") %>%
     mutate(n = case_when(is.na(n) ~ 0, .default = n)) %>%
-    ggplot(aes(x = floor_day, y = n)) +
-      geom_line() +
+    ggplot(aes(x = floor_day, y = n, fill = breeding_evidence_type)) +
+    geom_bar(position = "stack", stat = "identity") +
     labs(title = select_tree,
          x = "Date",
          y = "Observations per week",
          caption = str_c("n = ", n_obs, sep = "")) +
     theme_light() +
     standard_theme +
+    theme(legend.position = "bottom",
+          legend.title=element_blank()) +
     scale_x_date(date_labels = "%b", 
                  date_breaks = "1 month", 
                  limits = as_date(c("2021-01-01", "2021-12-31")),
                  minor_breaks = "1 week") +
-    scale_y_continuous(breaks = pretty_breaks())
+    scale_y_continuous(breaks = pretty_breaks()) +
+    guides(fill = guide_legend(nrow = 5, byrow = TRUE)) +
+    scale_fill_discrete(drop = TRUE,
+                        limits = levels(bbs_df$breeding_evidence_type))
 }
 
 # Day of year
@@ -223,7 +218,6 @@ single_species_plot_function <- function(select_species, time_aggr) {
   
   bbs_df %>% # start with full dataset
     filter(common_name == select_species) %>% # only include select species
-    #filter(Breeding.Evidence %in% select_breeding_evidence) %>% # only certain kinds of evidence
     group_by(!!as.name(time_aggr), breeding_evidence_type) %>% # summarize over weeks or months
     tally() %>% # count the number of observations
     left_join(time_key, by = time_aggr) %>% # merge a date onto the week/month number
@@ -247,6 +241,3 @@ single_species_plot_function <- function(select_species, time_aggr) {
 }
 
 # single_species_plot_function("California Towhee", "week")
-
-# save(bbs_df, month_key, month_key_Dec, standard_theme, week_key, week_key_Dec,
-#      breeding_evidence, single_species_plot_function, file = "sb_bbs/objects.Rdata")

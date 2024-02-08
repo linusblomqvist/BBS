@@ -9,7 +9,7 @@ server <- function(input, output) {
   output$trendline <- renderPlot(
     # Render a line plot
     single_species_plot_function(select_species = input$species,
-                                 time_aggr = input$time_aggr)
+                                 time_aggr = "week")
   )
   
   output$species_table <- DT::renderDataTable(
@@ -46,7 +46,7 @@ server <- function(input, output) {
 # Use a fluid Bootstrap layout
 ui <- navbarPage("Santa Barbara Breeding Bird Study", theme = shinytheme("flatly"),
 
-  tabPanel(title = "Single species display",
+  tabPanel(title = "Single-species display",
   
   # Generate a row with a sidebar
   sidebarLayout(      
@@ -55,11 +55,7 @@ ui <- navbarPage("Santa Barbara Breeding Bird Study", theme = shinytheme("flatly
     sidebarPanel(
       selectInput("species", "Species:", 
                   choices=unique(bbs_df$common_name),
-                  selected = sample(bbs_df$common_name, 1)),
-      hr(),
-      selectInput("time_aggr", "By week or month:",
-                  choices = c("week", "month"),
-                  selected = "week")
+                  selected = sample(bbs_df$common_name, 1))
     ),
     # Create a spot for the barplot
     mainPanel(
@@ -94,13 +90,17 @@ tabPanel(title = "Two-species comparison",
 tabPanel(title = "Tree usage",
          sidebarLayout(
            sidebarPanel(
-             selectInput("tree", "Tree type",
+             selectInput("tree", "Tree type:",
                          choices = unique(tree_by_week$tree_type),
                          selected = sample(unique(tree_by_week$tree_type)))
            ),
            mainPanel(
-             plotOutput("tree_plot")
-           ))
+             plotOutput("tree_plot"),
+             p("Observations refer to records of some breeding behavior taking place in a given tree type."),
+             p("Each item in the list, for example 'Eucalyptus', can encompass several species."),
+             p("Not all tree types that exist in the Breeding Bird Study database have been included, only the most common ones.")
+           )
+           )
          )
 )
 

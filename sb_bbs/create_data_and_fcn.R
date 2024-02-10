@@ -9,10 +9,10 @@ library(shinythemes)
 library(scales)
 
 # Read in data
-bbs_df <- read_csv("BBS_data_Jan_2024.csv")
+bbs_df_raw <- read_csv("BBS_data_Jan_2024.csv")
 aba_list <- read_csv("aba_checklist.csv")
 
-bbs_df <- janitor::clean_names(bbs_df)
+bbs_df <- janitor::clean_names(bbs_df_raw)
 
 bbs_df <- bbs_df %>%
   select(record_number, common_name, locality, observation_date, breeding_evidence, 
@@ -51,6 +51,10 @@ bbs_df$week <- week(bbs_df$observation_date)
 bbs_df$month <- month(bbs_df$observation_date)
 bbs_df$day <- day(bbs_df$observation_date)
 
+# Day of year
+bbs_df <- bbs_df %>%
+  mutate(day_of_year = yday(observation_date))
+
 # Get unique types of breeding evidence
 breeding_evidence_all <- unique(bbs_df$breeding_evidence)
 
@@ -71,8 +75,8 @@ breeding_evidence_selected <- c("Fledgling out of Nest--Brancher",
                        "Copulation",
                        "Carrying Fecal Sac")
 
-bbs_df <- bbs_df %>%
-  filter(breeding_evidence %in% breeding_evidence_selected)
+# bbs_df <- bbs_df %>%
+#   filter(breeding_evidence %in% breeding_evidence_selected)
 
 bbs_df <- bbs_df %>%
   mutate(breeding_evidence = case_when(
@@ -155,11 +159,18 @@ bbs_df <- bbs_df %>%
     nest_structure_or_substrate %in% tree_search_fcn("fig") ~ "Fig"
   ))
 
+bbs_df <- bbs_df %>%
+  mutate(breeding_evidence = case_when(
+    breeding_evidence == "Adult at Nest (clarify)" ~ "Adult at Nest",
+    breeding_evidence == "Nest in Use (clarify)" ~ "Nest in Use",
+    .default = breeding_evidence
+  ))
+
 # Nest structure
 tree_by_week <- bbs_df %>%
   filter(!is.na(tree_type)) %>%
-  filter(breeding_evidence %in% c("Egg in Nest", "Nestling in Nest", "Fledgling out of Nest--Brancher", 
-                                  "Nest Building", "Carrying Nesting Material", "Delivering Food to Nest or Cavity")) %>%
+  filter(breeding_evidence %in% c("Egg in Nest", "Adult at Nest", "Nestling in Nest", "Fledgling out of Nest--Brancher", 
+                                  "Nest Building", "Nest in Use", "Carrying Nesting Material", "Cavity Nester Attending Cavity", "Delivering Food to Nest or Cavity")) %>%
   mutate(breeding_evidence = factor(breeding_evidence)) %>%
   group_by(week, tree_type, breeding_evidence) %>%
   summarize(n = n())
@@ -190,12 +201,9 @@ tree_by_week_plot <- function(select_tree) {
     scale_y_continuous(breaks = pretty_breaks()) +
     scale_fill_discrete(drop = FALSE,
                         limits = levels(bbs_df$breeding_evidence),
-                        na.translate = F)
+                        na.translate = F) +
+    guides(fill = guide_legend(nrow = 4, byrow = TRUE))
 }
-
-# Day of year
-bbs_df <- bbs_df %>%
-  mutate(day_of_year = yday(observation_date))
 
 # Theme template
 standard_theme <- theme(panel.grid.major.x = element_blank(),
@@ -203,11 +211,6 @@ standard_theme <- theme(panel.grid.major.x = element_blank(),
                         text = element_text(size = 15),
                         plot.title = element_text(hjust = 0.5),
                         plot.subtitle = element_text(hjust = 0.5))
-
-# Color scheme
-my_colors <- brewer.pal(5, "Set3")
-names(my_colors) <- levels(bbs_df$breeding_evidence_type)
-col_scale <- scale_colour_manual(name = "breeding_evidence_type", values = my_colors)
 
 # Single species
 single_species_plot_function <- function(select_species, time_aggr) {
@@ -222,6 +225,7 @@ single_species_plot_function <- function(select_species, time_aggr) {
   
   bbs_df %>% # start with full dataset
     filter(common_name == select_species) %>% # only include select species
+    filter(!is.na(breeding_evidence_type)) %>%
     group_by(!!as.name(time_aggr), breeding_evidence_type) %>% # summarize over weeks or months
     tally() %>% # count the number of observations
     left_join(time_key, by = time_aggr) %>% # merge a date onto the week/month number
@@ -239,7 +243,7 @@ single_species_plot_function <- function(select_species, time_aggr) {
                  date_breaks = "1 month", 
                  limits = as_date(c("2021-01-01", "2021-12-31")),
                  minor_breaks = "1 week") +
-    guides(fill = guide_legend(nrow = 5, byrow = TRUE)) +
+    guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
     scale_fill_discrete(drop = FALSE,
                         limits = levels(bbs_df$breeding_evidence_type))
 }

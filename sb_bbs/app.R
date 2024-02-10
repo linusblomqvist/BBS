@@ -1,6 +1,8 @@
 library(shiny)
 library(tidyverse)
 library(ggpubr)
+library(htmltools)
+library(markdown)
 source("create_data_and_fcn.R")
 
 # Define a server for the Shiny app
@@ -45,6 +47,8 @@ server <- function(input, output) {
 
 # Use a fluid Bootstrap layout
 ui <- navbarPage("Santa Barbara Breeding Bird Study", theme = shinytheme("flatly"),
+                 
+                 tags$head(includeHTML("google-analytics.Rhtml")),
 
   tabPanel(title = "Single-species display",
   
@@ -60,10 +64,7 @@ ui <- navbarPage("Santa Barbara Breeding Bird Study", theme = shinytheme("flatly
     # Create a spot for the barplot
     mainPanel(
       plotOutput("trendline"),
-      DT::dataTableOutput("species_table"),
-      HTML("<br>"),
-      HTML("<br><p>For more information, see <a href = https://santabarbaraaudubon.org/santa-barbara-county-breeding-bird-study/>https://santabarbaraaudubon.org/santa-barbara-county-breeding-bird-study</a>. Web app by Linus Blomqvist. Code <a href = https://github.com/linusblomqvist/BBS/tree/main/sb_bbs>here.</a><p>")
-    )
+      DT::dataTableOutput("species_table"))
     
   )
 ),
@@ -95,13 +96,12 @@ tabPanel(title = "Tree usage",
                          selected = sample(unique(tree_by_week$tree_type)))
            ),
            mainPanel(
-             plotOutput("tree_plot"),
-             p("Observations refer to records of some breeding behavior taking place in a given tree type."),
-             p("Each item in the list, for example 'Eucalyptus', can encompass several species."),
-             p("Not all tree types that exist in the Breeding Bird Study database have been included, only the most common ones.")
+             plotOutput("tree_plot"))
            )
-           )
-         )
+         ),
+
+tabPanel(title = "Methods",
+         htmltools::includeMarkdown("bbs_methods.md"))
 )
 
 shinyApp(ui = ui, server = server)

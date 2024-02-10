@@ -1,0 +1,62 @@
+---
+output: md_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '/Users/linusblomqvist/Library/CloudStorage/Dropbox/Birding/BBS/sb_bbs')
+```
+
+```{r, message = FALSE, warning = FALSE, include = FALSE}
+source("create_data_and_fcn.R")
+library(lubridate)
+library(DT)
+library(markdown)
+```
+
+This web app was built by Linus Blomqvist (code [here](https://github.com/linusblomqvist/BBS/tree/main/sb_bbs)) using data from the Santa Barbara Breeding Bird Study. For more information about this study, see [this website](https://santabarbaraaudubon.org/santa-barbara-county-breeding-bird-study).
+
+As of the most recent update of this web app on `r Sys.Date()`, the database contained a total of `r nrow(bbs_df_raw)` records with the following `r length(breeding_evidence_all)` types of breeding behavior: 
+
+```{r, echo = FALSE}
+breeding_evidence_all
+```
+
+
+Some of these have been filtered out for the graphs on this web app, for one or both of the following reasons:
+
+* The breeding behavior does not correspond to a particular breeding stage (such as "Pair in suitable habitat"), making it unsuitable for the study of phenology
+* The behavior is only weak evidence of breeding (for example, "Pair in suitable habitat")
+
+This leaves `r length(breeding_evidence_selected)` types of breeding behavior that are incorporated into the figures for individual bird species:
+
+```{r, echo = FALSE}
+breeding_evidence_selected
+```
+This leaves `r nrow(filter(bbs_df, breeding_evidence %in% breeding_evidence_selected))` records, or `r round(nrow(filter(bbs_df, breeding_evidence %in% breeding_evidence_selected)) / nrow(bbs_df_raw), 1) * 100`% of the total number of records.
+
+These `r length(breeding_evidence_selected)` behaviors are further grouped into `r length(unique(bbs_df$breeding_evidence_type))` categories as follows:
+
+* "Nest construction" = {"Carrying Nesting Material", "Nest Building"}
+* "Copulation and eggs in nest" = {"Copulation", "Egg in Nest"}
+* "Nestling and brancher" = {"Carrying Food", "Delivering Food to Nest or Cavity", "Nestling in Nest", "Carrying Fecal Sac", "Fledgling out of Nest--Brancher"}
+* "Fledglings and families" = {"Family Group in Close Association", "Feeding Fledgling", "Fledgling Begging", "Fledgling under Parental Care", "Fledgling with Presumed Parent"}
+* "Juvenile Independent" = {"Juvenile Independent"}
+
+For the tree usage graph, the following behaviors were included:
+
+```{r, echo = FALSE}
+unique(as.character(tree_by_week$breeding_evidence))
+```
+These all relate to breeding behaviors taking place in different tree types.
+
+The database contains `r length(unique(bbs_df$nest_structure_or_substrate))` different nest structures or substrates. Out of these, `r length(unique(tree_by_week$tree_type))` types of tree were selected, based on them occurring most frequently in the data. Each "type" roughly corresponds to a genus. The types are:
+
+
+```{r, echo = FALSE}
+unique(tree_by_week$tree_type)
+```
+
+Each of the selected tree types corresponds to several different entries in the database. For example, "Eucalyptus" comes in the form of "Eucalyptus tree", "Red Gum Eucalyptus", "Eucalyptus globulus", and so on. These different entries were detected using a string search, and then merged into the genus-level type. Further refinements to this method are coming. These `r length(unique(tree_by_week$tree_type))` tree types cover `r round(sum(tree_by_week$n) / bbs_df %>% filter(!is.na(nest_structure_or_substrate)) %>% nrow(), 1) * 100`% of all records with a nest structure or substrate, not all of which pertain to trees.
+
+To show the timing of records, the year is divided into 52 weeks. One bar corresponds to one such week. It does not necessarily correspond to week one, two, three, or four of a given month.

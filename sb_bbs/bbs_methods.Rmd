@@ -26,7 +26,7 @@ breeding_evidence_all
 Some of these have been filtered out for the graphs on this web app, for one or both of the following reasons:
 
 * The breeding behavior does not correspond to a particular breeding stage (such as "Pair in suitable habitat"), making it unsuitable for the study of phenology
-* The behavior is only weak evidence of breeding (for example, "Pair in suitable habitat")
+* The behavior is only weak evidence of breeding (for example, "Male Singing on Territory")
 
 This leaves `r length(breeding_evidence_selected)` types of breeding behavior that are incorporated into the figures for individual bird species:
 

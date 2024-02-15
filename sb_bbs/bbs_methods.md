@@ -4,8 +4,8 @@ data from the Santa Barbara Breeding Bird Study. For more information
 about this study, see [this
 website](https://santabarbaraaudubon.org/santa-barbara-county-breeding-bird-study).
 
-As of the most recent update of this web app on 2024-02-09, the database
-contained a total of 11906 records with the following 38 types of
+As of the most recent update of this web app on 2024-02-15, the database
+contained a total of 11938 records with the following 35 types of
 breeding behavior:
 
     ##  [1] "Fledgling out of Nest--Brancher"                                 
@@ -27,25 +27,22 @@ breeding behavior:
     ## [17] "Visiting Probable Nest Site"                                     
     ## [18] "Fledgling with Presumed Parent"                                  
     ## [19] "Nestling/Fledgling Dead (photo, please)"                         
-    ## [20] "Juvenile Independent"                                            
-    ## [21] "Pair in suitable habitat"                                        
-    ## [22] "Copulation"                                                      
+    ## [20] "Copulation"                                                      
+    ## [21] "Juvenile Independent"                                            
+    ## [22] "Pair in suitable habitat"                                        
     ## [23] "Courtship or Display"                                            
     ## [24] "Carrying Fecal Sac"                                              
     ## [25] "Agitated Behavior (clarify)"                                     
     ## [26] "Territorial Defense"                                             
     ## [27] NA                                                                
-    ## [28] "Fledgling Under Parental Care"                                   
-    ## [29] "Male Singing on Territory"                                       
-    ## [30] "Physiological--Brood Patch"                                      
-    ## [31] "Ad. ? collected/museum specimen (distended oviduct, egg in duct)"
-    ## [32] "Multiple Singing males (give number)"                            
-    ## [33] "Dead (Museum) specimen"                                          
-    ## [34] "Aborted nesting"                                                 
-    ## [35] "No Suitable Category"                                            
-    ## [36] "Male Singing on territory"                                       
-    ## [37] " "                                                               
-    ## [38] "Distraction Display"
+    ## [28] "Male Singing on Territory"                                       
+    ## [29] "Physiological--Brood Patch"                                      
+    ## [30] "Ad. ? collected/museum specimen (distended oviduct, egg in duct)"
+    ## [31] "Multiple Singing males (give number)"                            
+    ## [32] "Dead (Museum) specimen"                                          
+    ## [33] "Aborted nesting"                                                 
+    ## [34] "Male Singing on territory"                                       
+    ## [35] "Distraction Display"
 
 Some of these have been filtered out for the graphs on this web app, for
 one or both of the following reasons:
@@ -53,24 +50,24 @@ one or both of the following reasons:
 -   The breeding behavior does not correspond to a particular breeding
     stage (such as “Pair in suitable habitat”), making it unsuitable for
     the study of phenology
--   The behavior is only weak evidence of breeding (for example, “Pair
-    in suitable habitat”)
+-   The behavior is only weak evidence of breeding (for example, “Male
+    Singing on Territory”)
 
-This leaves 16 types of breeding behavior that are incorporated into the
+This leaves 15 types of breeding behavior that are incorporated into the
 figures for individual bird species:
 
     ##  [1] "Fledgling out of Nest--Brancher"   "Nestling in Nest"                 
     ##  [3] "Egg in Nest"                       "Fledgling under Parental Care"    
-    ##  [5] "Fledgling Under Parental Care"     "Nest Building"                    
-    ##  [7] "Family Group in Close Association" "Feeding Fledgling"                
-    ##  [9] "Delivering Food to Nest or Cavity" "Carrying Nesting Material"        
-    ## [11] "Carrying Food"                     "Fledgling Begging"                
-    ## [13] "Fledgling with Presumed Parent"    "Juvenile Independent"             
-    ## [15] "Copulation"                        "Carrying Fecal Sac"
+    ##  [5] "Nest Building"                     "Family Group in Close Association"
+    ##  [7] "Feeding Fledgling"                 "Delivering Food to Nest or Cavity"
+    ##  [9] "Carrying Nesting Material"         "Carrying Food"                    
+    ## [11] "Fledgling Begging"                 "Fledgling with Presumed Parent"   
+    ## [13] "Juvenile Independent"              "Copulation"                       
+    ## [15] "Carrying Fecal Sac"
 
-This leaves 9662 records, or 80% of the total number of records.
+This leaves 9743 records, or 80% of the total number of records.
 
-These 16 behaviors are further grouped into 6 categories as follows:
+These 15 behaviors are further grouped into 6 categories as follows:
 
 -   “Nest construction” = {“Carrying Nesting Material”, “Nest Building”}
 -   “Copulation and eggs in nest” = {“Copulation”, “Egg in Nest”}
@@ -93,13 +90,13 @@ For the tree usage graph, the following behaviors were included:
 These all relate to breeding behaviors taking place in different tree
 types.
 
-The database contains 479 different nest structures or substrates. Out
+The database contains 484 different nest structures or substrates. Out
 of these, 9 types of tree were selected, based on them occurring most
 frequently in the data. Each “type” roughly corresponds to a genus. The
 types are:
 
     ## [1] "Eucalyptus" "Oak"        "Pine"       "Sycamore"   "Willow"    
-    ## [6] "Cypress"    "Fig"        "Palm"       "Cottonwood"
+    ## [6] "Cypress"    "Fig"        "Cottonwood" "Palm"
 
 Each of the selected tree types corresponds to several different entries
 in the database. For example, “Eucalyptus” comes in the form of

@@ -9,7 +9,7 @@ library(shinythemes)
 library(scales)
 
 # Read in data
-bbs_df_raw <- read_csv("BBS_data_Jan_2024.csv")
+bbs_df_raw <- read_csv("BBS_data_Feb_2024_v2.csv")
 aba_list <- read_csv("aba_checklist.csv")
 
 bbs_df <- janitor::clean_names(bbs_df_raw)
@@ -24,31 +24,15 @@ bbs_df$observation_date <- dmy(bbs_df$observation_date)
 bbs_df <- bbs_df %>%
   filter(!(is.na(observation_date)))
 
-bbs_df <- bbs_df %>%
-  mutate(observation_date = case_when(record_number == 11965 ~ ymd("2011-04-07"),
-                                      record_number == 11963 ~ ymd("2011-04-21"),
-                                      record_number == 11964 ~ ymd("2011-04-21"),
-                                      record_number == 11966 ~ ymd("2011-05-01"),
-                                      record_number == 11967 ~ ymd("2011-05-01"),
-                                      record_number == 11962 ~ ymd("2014-04-19"),
-                                      record_number == 9535 ~ ymd("2019-02-21"),
-                                      record_number == 11961 ~ ymd("2022-04-15"),
-                                      record_number == 11948 ~ ymd("2022-08-14"),
-                                      record_number == 11949 ~ ymd("2022-08-14"),
-                                      record_number == 11940 ~ ymd("2022-08-15"),
-                                      record_number == 11941 ~ ymd("2022-08-15"),
-                                      record_number == 11942 ~ ymd("2022-08-15"),
-                                      record_number == 11943 ~ ymd("2022-08-15"),
-                                      record_number == 11944 ~ ymd("2022-08-18"),
-                                      record_number == 11950 ~ ymd("2022-08-18"),
-                                      record_number == 11951 ~ ymd("2022-08-19"),
-                                      record_number == 11952 ~ ymd("2022-09-02"),
-                                      record_number == 11953 ~ ymd("2022-09-03"),
-                                      .default = observation_date))
+######## DO THIS WITH EVERY NEW DATASET
+# bbs_df <- bbs_df %>%
+#   mutate(observation_date = case_when(record_number == 11951 ~ ymd("2022-08-19"),
+#                                       record_number == 11952 ~ ymd("2022-09-02"),
+#                                       record_number == 11962 ~ ymd("2014-04-19"),
+#                                       .default = observation_date))
 
 # Make a new variables for week, month, day
 bbs_df$week <- week(bbs_df$observation_date)
-bbs_df$month <- month(bbs_df$observation_date)
 bbs_df$day <- day(bbs_df$observation_date)
 
 # Day of year
@@ -62,7 +46,7 @@ breeding_evidence_selected <- c("Fledgling out of Nest--Brancher",
                        "Nestling in Nest",
                        "Egg in Nest",
                        "Fledgling under Parental Care",
-                       "Fledgling Under Parental Care",
+                       #"Fledgling Under Parental Care", # CAN SKIP ONE OF THESE IF FIXED IN DATABASE
                        "Nest Building",
                        "Family Group in Close Association",
                        "Feeding Fledgling",
@@ -75,15 +59,14 @@ breeding_evidence_selected <- c("Fledgling out of Nest--Brancher",
                        "Copulation",
                        "Carrying Fecal Sac")
 
+###### DON'T NEED TO DO IF FIXED IN DATABASE
 # bbs_df <- bbs_df %>%
-#   filter(breeding_evidence %in% breeding_evidence_selected)
+#   mutate(breeding_evidence = case_when(
+#     breeding_evidence == "Fledgling Under Parental Care" ~ "Fledgling under Parental Care",
+#     .default = breeding_evidence
+#   ))
 
-bbs_df <- bbs_df %>%
-  mutate(breeding_evidence = case_when(
-    breeding_evidence == "Fledgling Under Parental Care" ~ "Fledgling under Parental Care",
-    .default = breeding_evidence
-  ))
-
+# CHECK CAPITALIZATION IN UPDATED DATABASE
 bbs_df <- bbs_df %>%
   mutate(breeding_evidence_type = case_when(
     breeding_evidence %in% c("Carrying Nesting Material", "Nest Building") ~ "Nest construction",
@@ -92,21 +75,22 @@ bbs_df <- bbs_df %>%
                              "Carrying Fecal Sac", "Fledgling out of Nest--Brancher") ~ "Nestling and brancher",
     breeding_evidence %in% c("Family Group in Close Association", "Feeding Fledgling",
                              "Fledgling Begging", "Fledgling under Parental Care", "Fledgling with Presumed Parent") ~ "Fledglings and families",
-    breeding_evidence == "Juvenile Independent" ~ "Juvenile Independent"
+    breeding_evidence == "Juvenile Independent" ~ "Juvenile Independent",
+    .default = NA
   ))
 
 bbs_df <- bbs_df %>%
-  mutate(breeding_evidence_type = factor(breeding_evidence_type, levels = c("Nest construction",
-                                                                            "Copulation and eggs in nest",
-                                                                            "Nestling and brancher",
-                                                                            "Fledglings and families",
-                                                                            "Juvenile Independent")))
+  mutate(breeding_evidence = case_when(
+    breeding_evidence == "Adult at Nest (clarify)" ~ "Adult at Nest",
+    breeding_evidence == "Nest in Use (clarify)" ~ "Nest in Use",
+    .default = breeding_evidence
+  ))
 
 # Week and month key
 week_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"),
                                        by = "weeks"), week = 1:53)
-month_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"),
-                                        by = "months"), month = 1:12)
+# month_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"),
+#                                         by = "months"), month = 1:12)
 
 # Floor day is just a date in 2021 that corresponds to a given week (1-53)
 # or month (1-12). This is so that the x axis retains a date format
@@ -122,8 +106,7 @@ aba_list <- aba_list %>%
   filter(common_name != "Cordilleran Flycatcher")
 
 bbs_df <- left_join(aba_list, bbs_df, by = "common_name") %>%
-  filter(!is.na(record_number)) %>%
-  select(-record_number)
+  filter(!is.na(record_number))
 
 # Clean up empty spaces in nest_structure
 bbs_df <- bbs_df %>%
@@ -133,7 +116,7 @@ bbs_df <- bbs_df %>%
   ))
 
 # Check common nest structures
-obs_by_nest_structure <- bbs_df %>%
+bbs_df %>%
   filter(!is.na(nest_structure_or_substrate)) %>%
   group_by(nest_structure_or_substrate) %>%
   summarize(n = n()) %>%
@@ -159,18 +142,17 @@ bbs_df <- bbs_df %>%
     nest_structure_or_substrate %in% tree_search_fcn("fig") ~ "Fig"
   ))
 
-bbs_df <- bbs_df %>%
-  mutate(breeding_evidence = case_when(
-    breeding_evidence == "Adult at Nest (clarify)" ~ "Adult at Nest",
-    breeding_evidence == "Nest in Use (clarify)" ~ "Nest in Use",
-    .default = breeding_evidence
-  ))
+
+
+breeding_evidence_trees <- c("Egg in Nest", "Adult at Nest", "Nestling in Nest", 
+                             "Fledgling out of Nest--Brancher", "Nest Building", 
+                             "Nest in Use", "Carrying Nesting Material", 
+                             "Cavity Nester Attending Cavity", "Delivering Food to Nest or Cavity")
 
 # Nest structure
 tree_by_week <- bbs_df %>%
   filter(!is.na(tree_type)) %>%
-  filter(breeding_evidence %in% c("Egg in Nest", "Adult at Nest", "Nestling in Nest", "Fledgling out of Nest--Brancher", 
-                                  "Nest Building", "Nest in Use", "Carrying Nesting Material", "Cavity Nester Attending Cavity", "Delivering Food to Nest or Cavity")) %>%
+  filter(breeding_evidence %in% breeding_evidence_trees) %>%
   mutate(breeding_evidence = factor(breeding_evidence)) %>%
   group_by(week, tree_type, breeding_evidence) %>%
   summarize(n = n())
@@ -212,6 +194,16 @@ standard_theme <- theme(panel.grid.major.x = element_blank(),
                         plot.title = element_text(hjust = 0.5),
                         plot.subtitle = element_text(hjust = 0.5))
 
+bbs_df <- bbs_df %>%
+  filter(!is.na(breeding_evidence_type))
+
+bbs_df <- bbs_df %>%
+  mutate(breeding_evidence_type = factor(breeding_evidence_type, levels = c("Nest construction",
+                                                                            "Copulation and eggs in nest",
+                                                                            "Nestling and brancher",
+                                                                            "Fledglings and families",
+                                                                            "Juvenile Independent")))
+
 # Single species
 single_species_plot_function <- function(select_species, time_aggr) {
   
@@ -243,7 +235,7 @@ single_species_plot_function <- function(select_species, time_aggr) {
                  date_breaks = "1 month", 
                  limits = as_date(c("2021-01-01", "2021-12-31")),
                  minor_breaks = "1 week") +
-    guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
+    guides(fill = guide_legend(nrow = 5, byrow = TRUE)) +
     scale_fill_discrete(drop = FALSE,
                         limits = levels(bbs_df$breeding_evidence_type))
 }

@@ -93,7 +93,7 @@ tabPanel(title = "Tree usage",
            sidebarPanel(
              selectInput("tree", "Tree type:",
                          choices = unique(tree_by_week$tree_type),
-                         selected = sample(unique(tree_by_week$tree_type)))
+                         selected = sample(unique(tree_by_week$tree_type), 1))
            ),
            mainPanel(
              plotOutput("tree_plot"))

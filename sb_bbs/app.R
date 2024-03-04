@@ -3,6 +3,7 @@ library(tidyverse)
 library(ggpubr)
 library(htmltools)
 library(markdown)
+library(plotly)
 source("create_data_and_fcn.R")
 
 # Define a server for the Shiny app
@@ -10,16 +11,18 @@ server <- function(input, output) {
   # Fill in the spot we created for a plot
   output$trendline <- renderPlot(
     # Render a line plot
-    single_species_plot_function(select_species = input$species,
-                                 time_aggr = "week")
+
+      single_species_plot_function(select_species = input$species,
+                                   time_aggr = "week")
+
   )
   
   output$species_table <- DT::renderDataTable(
     DT::datatable(bbs_df %>%
                     filter(common_name == input$species) %>%
-                    select(locality, observation_date, day_of_year, breeding_evidence), 
+                    select(record_number, locality, observation_date, day_of_year, breeding_evidence), 
                   options = list(pageLength = 10),
-                  colnames = c("Location", "Date", "Day of year", "Evidence type"),
+                  colnames = c("Record no.", "Location", "Date", "Day of year", "Evidence type"),
                   rownames = FALSE)
   )
   

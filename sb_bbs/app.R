@@ -20,9 +20,9 @@ server <- function(input, output) {
   output$species_table <- DT::renderDataTable(
     DT::datatable(bbs_df %>%
                     filter(common_name == input$species) %>%
-                    select(record_number, locality, observation_date, day_of_year, breeding_evidence), 
+                    select(record_number, locality, observation_date, week, breeding_evidence), 
                   options = list(pageLength = 10),
-                  colnames = c("Record no.", "Location", "Date", "Day of year", "Evidence type"),
+                  colnames = c("Record no.", "Location", "Date", "Week", "Evidence type"),
                   rownames = FALSE)
   )
   
@@ -49,7 +49,7 @@ server <- function(input, output) {
 }
 
 # Use a fluid Bootstrap layout
-ui <- navbarPage("Santa Barbara Breeding Bird Study", theme = shinytheme("flatly"),
+ui <- navbarPage("Santa Barbara Breeding Bird Study Data Explorer", theme = shinytheme("flatly"),
                  
                  tags$head(includeHTML("google-analytics.Rhtml")),
 

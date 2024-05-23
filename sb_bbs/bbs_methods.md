@@ -4,8 +4,8 @@ data from the Santa Barbara Breeding Bird Study. For more information
 about this study, see [this
 website](https://santabarbaraaudubon.org/santa-barbara-county-breeding-bird-study).
 
-As of the most recent update of this web app on 2024-02-15, the database
-contained a total of 11938 records with the following 35 types of
+As of the most recent update of this web app on 2024-05-23, the database
+contained a total of 12208 records with the following 36 types of
 breeding behavior:
 
     ##  [1] "Fledgling out of Nest--Brancher"                                 
@@ -42,7 +42,8 @@ breeding behavior:
     ## [32] "Dead (Museum) specimen"                                          
     ## [33] "Aborted nesting"                                                 
     ## [34] "Male Singing on territory"                                       
-    ## [35] "Distraction Display"
+    ## [35] "Distraction Display"                                             
+    ## [36] "No Suitable Category"
 
 Some of these have been filtered out for the graphs on this web app, for
 one or both of the following reasons:
@@ -65,9 +66,9 @@ figures for individual bird species:
     ## [13] "Juvenile Independent"              "Copulation"                       
     ## [15] "Carrying Fecal Sac"
 
-This leaves 9743 records, or 80% of the total number of records.
+This leaves 10016 records, or 80% of the total number of records.
 
-These 15 behaviors are further grouped into 6 categories as follows:
+These 15 behaviors are further grouped into 5 categories as follows:
 
 -   “Nest construction” = {“Carrying Nesting Material”, “Nest Building”}
 -   “Copulation and eggs in nest” = {“Copulation”, “Egg in Nest”}
@@ -90,7 +91,7 @@ For the tree usage graph, the following behaviors were included:
 These all relate to breeding behaviors taking place in different tree
 types.
 
-The database contains 484 different nest structures or substrates. Out
+The database contains 410 different nest structures or substrates. Out
 of these, 9 types of tree were selected, based on them occurring most
 frequently in the data. Each “type” roughly corresponds to a genus. The
 types are:
@@ -103,7 +104,7 @@ in the database. For example, “Eucalyptus” comes in the form of
 “Eucalyptus tree”, “Red Gum Eucalyptus”, “Eucalyptus globulus”, and so
 on. These different entries were detected using a string search, and
 then merged into the genus-level type. Further refinements to this
-method are coming. These 9 tree types cover 40% of all records with a
+method are coming. These 9 tree types cover 70% of all records with a
 nest structure or substrate, not all of which pertain to trees.
 
 To show the timing of records, the year is divided into 52 weeks. One

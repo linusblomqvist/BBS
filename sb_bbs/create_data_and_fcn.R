@@ -7,10 +7,13 @@ library(DT)
 library(magrittr)
 library(shinythemes)
 library(scales)
+library(readxl)
+
+# setwd("/Users/linusblomqvist/Library/CloudStorage/Dropbox/Birding/BBS/sb_bbs")
 
 # Read in data
-bbs_df_raw <- read_csv("BBS_data_Feb_2024_v2.csv")
-aba_list <- read_csv("aba_checklist.csv")
+bbs_df_raw <- read_xlsx("SB BBS 15 May 2024 12208.xlsx", sheet = 4)
+aba_list_raw <- read_csv("aba_checklist.csv")
 
 bbs_df <- janitor::clean_names(bbs_df_raw)
 
@@ -19,25 +22,14 @@ bbs_df <- bbs_df %>%
          observation_details, nest_structure_or_substrate)
 
 # Standardize date format
-bbs_df$observation_date <- dmy(bbs_df$observation_date)
+bbs_df$observation_date <- ymd(bbs_df$observation_date)
 
 bbs_df <- bbs_df %>%
   filter(!(is.na(observation_date)))
 
-######## DO THIS WITH EVERY NEW DATASET
-# bbs_df <- bbs_df %>%
-#   mutate(observation_date = case_when(record_number == 11951 ~ ymd("2022-08-19"),
-#                                       record_number == 11952 ~ ymd("2022-09-02"),
-#                                       record_number == 11962 ~ ymd("2014-04-19"),
-#                                       .default = observation_date))
-
 # Make a new variables for week, month, day
 bbs_df$week <- week(bbs_df$observation_date)
 bbs_df$day <- day(bbs_df$observation_date)
-
-# Day of year
-bbs_df <- bbs_df %>%
-  mutate(day_of_year = yday(observation_date))
 
 # Get unique types of breeding evidence
 breeding_evidence_all <- unique(bbs_df$breeding_evidence)
@@ -46,7 +38,6 @@ breeding_evidence_selected <- c("Fledgling out of Nest--Brancher",
                        "Nestling in Nest",
                        "Egg in Nest",
                        "Fledgling under Parental Care",
-                       #"Fledgling Under Parental Care", # CAN SKIP ONE OF THESE IF FIXED IN DATABASE
                        "Nest Building",
                        "Family Group in Close Association",
                        "Feeding Fledgling",
@@ -58,13 +49,6 @@ breeding_evidence_selected <- c("Fledgling out of Nest--Brancher",
                        "Juvenile Independent",
                        "Copulation",
                        "Carrying Fecal Sac")
-
-###### DON'T NEED TO DO IF FIXED IN DATABASE
-# bbs_df <- bbs_df %>%
-#   mutate(breeding_evidence = case_when(
-#     breeding_evidence == "Fledgling Under Parental Care" ~ "Fledgling under Parental Care",
-#     .default = breeding_evidence
-#   ))
 
 # CHECK CAPITALIZATION IN UPDATED DATABASE
 bbs_df <- bbs_df %>%
@@ -89,21 +73,22 @@ bbs_df <- bbs_df %>%
 # Week and month key
 week_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"),
                                        by = "weeks"), week = 1:53)
-# month_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"),
-#                                         by = "months"), month = 1:12)
 
 # Floor day is just a date in 2021 that corresponds to a given week (1-53)
 # or month (1-12). This is so that the x axis retains a date format
 
 # Taxonomic order
-aba_list <- aba_list %>%
+aba_list <- aba_list_raw %>%
   select(species) %>%
   rename(common_name = species) %>%
   mutate(common_name = case_when(
     common_name == "Pacific-slope Flycatcher" ~ "Western Flycatcher",
     .default = common_name
   )) %>%
-  filter(common_name != "Cordilleran Flycatcher")
+  filter(common_name != "Cordilleran Flycatcher") %>%
+  add_row(.before = 726)
+
+aba_list$common_name[726] <- "Belding's Savannah Sparrow"
 
 bbs_df <- left_join(aba_list, bbs_df, by = "common_name") %>%
   filter(!is.na(record_number))
@@ -141,8 +126,6 @@ bbs_df <- bbs_df %>%
     nest_structure_or_substrate %in% tree_search_fcn("cottonwood") ~ "Cottonwood",
     nest_structure_or_substrate %in% tree_search_fcn("fig") ~ "Fig"
   ))
-
-
 
 breeding_evidence_trees <- c("Egg in Nest", "Adult at Nest", "Nestling in Nest", 
                              "Fledgling out of Nest--Brancher", "Nest Building", 
@@ -229,7 +212,7 @@ single_species_plot_function <- function(select_species, time_aggr) {
          caption = str_c("n = ", n_obs, sep = "")) +
     theme_light() +
     standard_theme +
-    theme(legend.position = "bottom",
+    theme(legend.position = "right",
           legend.title=element_blank()) +
     scale_x_date(date_labels = "%b", 
                  date_breaks = "1 month", 
@@ -237,7 +220,8 @@ single_species_plot_function <- function(select_species, time_aggr) {
                  minor_breaks = "1 week") +
     guides(fill = guide_legend(nrow = 5, byrow = TRUE)) +
     scale_fill_discrete(drop = FALSE,
-                        limits = levels(bbs_df$breeding_evidence_type))
+                        limits = levels(bbs_df$breeding_evidence_type)) +
+    scale_y_continuous(breaks = pretty_breaks())
 }
 
 # single_species_plot_function("California Towhee", "week")

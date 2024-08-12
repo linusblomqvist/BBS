@@ -4,8 +4,8 @@ data from the Santa Barbara Breeding Bird Study. For more information
 about this study, see [this
 website](https://santabarbaraaudubon.org/santa-barbara-county-breeding-bird-study).
 
-As of the most recent update of this web app on 2024-05-23, the database
-contained a total of 12208 records with the following 36 types of
+As of the most recent update of this web app on 2024-08-11, the database
+contained a total of 12777 records with the following 37 types of
 breeding behavior:
 
     ##  [1] "Fledgling out of Nest--Brancher"                                 
@@ -43,7 +43,8 @@ breeding behavior:
     ## [33] "Aborted nesting"                                                 
     ## [34] "Male Singing on territory"                                       
     ## [35] "Distraction Display"                                             
-    ## [36] "No Suitable Category"
+    ## [36] "No Suitable Category"                                            
+    ## [37] " "
 
 Some of these have been filtered out for the graphs on this web app, for
 one or both of the following reasons:
@@ -66,7 +67,7 @@ figures for individual bird species:
     ## [13] "Juvenile Independent"              "Copulation"                       
     ## [15] "Carrying Fecal Sac"
 
-This leaves 10016 records, or 80% of the total number of records.
+This leaves 10483 records, or 80% of the total number of records.
 
 These 15 behaviors are further grouped into 5 categories as follows:
 
@@ -91,7 +92,7 @@ For the tree usage graph, the following behaviors were included:
 These all relate to breeding behaviors taking place in different tree
 types.
 
-The database contains 410 different nest structures or substrates. Out
+The database contains 397 different nest structures or substrates. Out
 of these, 9 types of tree were selected, based on them occurring most
 frequently in the data. Each “type” roughly corresponds to a genus. The
 types are:

@@ -4,47 +4,45 @@ data from the Santa Barbara Breeding Bird Study. For more information
 about this study, see [this
 website](https://santabarbaraaudubon.org/santa-barbara-county-breeding-bird-study).
 
-As of the most recent update of this web app on 2024-08-11, the database
-contained a total of 12777 records with the following 37 types of
+As of the most recent update of this web app on 2024-09-05, the database
+contained a total of 12815 records with the following 35 types of
 breeding behavior:
 
-    ##  [1] "Fledgling out of Nest--Brancher"                                 
-    ##  [2] "No suitable category"                                            
-    ##  [3] "Nestling in Nest"                                                
-    ##  [4] "Egg in Nest"                                                     
-    ##  [5] "Fledgling under Parental Care"                                   
-    ##  [6] "Nest Building"                                                   
-    ##  [7] "Family Group in Close Association"                               
-    ##  [8] "Host - Brood Parasite Interaction"                               
-    ##  [9] "Feeding Fledgling"                                               
-    ## [10] "Delivering Food to Nest or Cavity"                               
-    ## [11] "Carrying Nesting Material"                                       
-    ## [12] "Nest in Use (clarify)"                                           
-    ## [13] "Carrying Food"                                                   
-    ## [14] "Cavity Nester Attending Cavity"                                  
-    ## [15] "Fledgling Begging"                                               
-    ## [16] "Adult at Nest (clarify)"                                         
-    ## [17] "Visiting Probable Nest Site"                                     
-    ## [18] "Fledgling with Presumed Parent"                                  
-    ## [19] "Nestling/Fledgling Dead (photo, please)"                         
-    ## [20] "Copulation"                                                      
-    ## [21] "Juvenile Independent"                                            
-    ## [22] "Pair in suitable habitat"                                        
-    ## [23] "Courtship or Display"                                            
-    ## [24] "Carrying Fecal Sac"                                              
-    ## [25] "Agitated Behavior (clarify)"                                     
-    ## [26] "Territorial Defense"                                             
-    ## [27] NA                                                                
-    ## [28] "Male Singing on Territory"                                       
-    ## [29] "Physiological--Brood Patch"                                      
-    ## [30] "Ad. ? collected/museum specimen (distended oviduct, egg in duct)"
-    ## [31] "Multiple Singing males (give number)"                            
-    ## [32] "Dead (Museum) specimen"                                          
-    ## [33] "Aborted nesting"                                                 
-    ## [34] "Male Singing on territory"                                       
-    ## [35] "Distraction Display"                                             
-    ## [36] "No Suitable Category"                                            
-    ## [37] " "
+    ##  [1] "Aborted nesting"                                                 
+    ##  [2] "Ad. ? collected/museum specimen (distended oviduct, egg in duct)"
+    ##  [3] "Adult at Nest (clarify)"                                         
+    ##  [4] "Agitated Behavior (clarify)"                                     
+    ##  [5] "Carrying Fecal Sac"                                              
+    ##  [6] "Carrying Food"                                                   
+    ##  [7] "Carrying Nesting Material"                                       
+    ##  [8] "Cavity Nester Attending Cavity"                                  
+    ##  [9] "Copulation"                                                      
+    ## [10] "Courtship or Display"                                            
+    ## [11] "Dead (Museum) specimen"                                          
+    ## [12] "Delivering Food to Nest or Cavity"                               
+    ## [13] "Distraction Display"                                             
+    ## [14] "Egg in Nest"                                                     
+    ## [15] "Family Group in Close Association"                               
+    ## [16] "Feeding Fledgling"                                               
+    ## [17] "Fledgling Begging"                                               
+    ## [18] "Fledgling out of Nest--Brancher"                                 
+    ## [19] "Fledgling under Parental Care"                                   
+    ## [20] "Fledgling with Presumed Parent"                                  
+    ## [21] "Host - Brood Parasite Interaction"                               
+    ## [22] "Juvenile Independent"                                            
+    ## [23] "Male Singing on territory"                                       
+    ## [24] "Male Singing on Territory"                                       
+    ## [25] "Multiple Singing males (give number)"                            
+    ## [26] "Nest Building"                                                   
+    ## [27] "Nest in Use (clarify)"                                           
+    ## [28] "Nestling in Nest"                                                
+    ## [29] "Nestling/Fledgling Dead (photo, please)"                         
+    ## [30] "No suitable category"                                            
+    ## [31] "No Suitable Category"                                            
+    ## [32] "Pair in suitable habitat"                                        
+    ## [33] "Physiological--Brood Patch"                                      
+    ## [34] "Territorial Defense"                                             
+    ## [35] "Visiting Probable Nest Site"
 
 Some of these have been filtered out for the graphs on this web app, for
 one or both of the following reasons:
@@ -67,7 +65,7 @@ figures for individual bird species:
     ## [13] "Juvenile Independent"              "Copulation"                       
     ## [15] "Carrying Fecal Sac"
 
-This leaves 10483 records, or 80% of the total number of records.
+This leaves 10520 records, or 80% of the total number of records.
 
 These 15 behaviors are further grouped into 5 categories as follows:
 
@@ -92,7 +90,7 @@ For the tree usage graph, the following behaviors were included:
 These all relate to breeding behaviors taking place in different tree
 types.
 
-The database contains 397 different nest structures or substrates. Out
+The database contains 401 different nest structures or substrates. Out
 of these, 9 types of tree were selected, based on them occurring most
 frequently in the data. Each “type” roughly corresponds to a genus. The
 types are:

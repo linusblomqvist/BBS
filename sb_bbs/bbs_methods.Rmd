@@ -19,7 +19,7 @@ This web app was built by Linus Blomqvist (code [here](https://github.com/linusb
 As of the most recent update of this web app on `r Sys.Date()`, the database contained a total of `r nrow(bbs_df_raw)` records with the following `r length(breeding_evidence_all)` types of breeding behavior: 
 
 ```{r, echo = FALSE}
-breeding_evidence_all
+sort(breeding_evidence_all)
 ```
 
 

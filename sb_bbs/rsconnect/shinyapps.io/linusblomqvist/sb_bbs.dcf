@@ -5,6 +5,6 @@ account: linusblomqvist
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 11051664
-bundleId: 8971420
+bundleId: 9067799
 url: https://linusblomqvist.shinyapps.io/sb_bbs/
 version: 1

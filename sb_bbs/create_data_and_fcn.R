@@ -12,7 +12,7 @@ library(readxl)
 # setwd("/Users/linusblomqvist/Library/CloudStorage/Dropbox/Birding/BBS/sb_bbs")
 
 # Read in data
-bbs_df_raw <- read_xlsx("SB BBS 10 April 2025 13051.xlsx", sheet = 4)
+bbs_df_raw <- read_xlsx("SB BBS 11 April 2025 13051.xlsx", sheet = 4)
 aba_list_raw <- read_csv("ABA_Checklist-8.17.csv")
 
 bbs_df <- janitor::clean_names(bbs_df_raw)
@@ -50,7 +50,6 @@ breeding_evidence_selected <- c("Fledgling out of Nest--Brancher",
                        "Copulation",
                        "Carrying Fecal Sac")
 
-# CHECK CAPITALIZATION IN UPDATED DATABASE
 bbs_df <- bbs_df %>%
   mutate(breeding_evidence_type = case_when(
     breeding_evidence %in% c("Carrying Nesting Material", "Nest Building") ~ "Nest construction",
@@ -65,7 +64,7 @@ bbs_df <- bbs_df %>%
 
 bbs_df <- bbs_df %>%
   mutate(breeding_evidence = case_when(
-    breeding_evidence == "Adult at Nest (clarify)" | breeding_evidence == "Adult at nest" ~ "Adult at Nest",
+    breeding_evidence == "Adult at Nest (clarify)" ~ "Adult at Nest",
     breeding_evidence == "Nest in Use (clarify)" ~ "Nest in Use",
     .default = breeding_evidence
   ))
@@ -83,7 +82,8 @@ aba_list <- aba_list_raw %>%
   filter(!is.na(species)) %>%
   select(species) %>%
   rename(common_name = species) %>%
-  add_row(.before = 1031)
+  add_row(.before = 1031) %>%
+  mutate(common_name = ifelse(common_name == "(Northern) House Wren", "Northern House Wren", common_name))
 
 # Note (Northern) House Wren in ABA
 

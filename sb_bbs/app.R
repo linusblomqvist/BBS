@@ -4,6 +4,7 @@ library(ggpubr)
 library(htmltools)
 library(markdown)
 library(plotly)
+library(shinythemes)
 source("create_data_and_fcn.R")
 
 server <- function(input, output, session) {
@@ -18,7 +19,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Fill in the spot we created for a plot
+  # Tab 1: Single-species display
   output$trendline <- renderPlot(
     single_species_plot_function(select_species = input$species,
                                  time_aggr = "week")
@@ -34,65 +35,74 @@ server <- function(input, output, session) {
       rownames = FALSE
     )
   )
+  
+  # Tab 2: Two-species comparison
+  output$sp_comp_1 <- renderPlot({
+    single_species_plot_function(select_species = input$sp_for_comp_1, time_aggr = "week")
+  })
+  
+  output$sp_comp_2 <- renderPlot({
+    single_species_plot_function(select_species = input$sp_for_comp_2, time_aggr = "week")
+  })
+  
+  # Tab 3: Tree usage
+  output$tree_plot <- renderPlot({
+    tree_by_week_plot(select_tree = input$tree)
+  })
 }
 
-# Use a fluid Bootstrap layout
+# UI layout
 ui <- navbarPage("Santa Barbara Breeding Bird Study Data Explorer", theme = shinytheme("flatly"),
                  
                  tags$head(includeHTML("google-analytics.Rhtml")),
-
-  tabPanel(title = "Single-species display",
-  
-  # Generate a row with a sidebar
-  sidebarLayout(      
-    
-    # Define the sidebar with one input
-    sidebarPanel(
-      selectInput("species", "Species:", 
-                  choices=unique(bbs_df$common_name),
-                  selected = sample(bbs_df$common_name, 1))
-    ),
-    # Create a spot for the barplot
-    mainPanel(
-      plotOutput("trendline"),
-      DT::dataTableOutput("species_table"))
-    
-  )
-),
-tabPanel(title = "Two-species comparison",
-         sidebarLayout(      
-           
-           # Define the sidebar with one input
-           sidebarPanel(
-             selectInput("sp_for_comp_1", "Species 1:", 
-                         choices=unique(bbs_df$common_name),
-                         selected = sample(bbs_df$common_name, 1)),
-           hr(),
-           selectInput("sp_for_comp_2", "Species 2:", 
-                       choices=unique(bbs_df$common_name),
-                       selected = sample(bbs_df$common_name, 1))),
-           # Create a spot for the barplot
-           mainPanel(
-             plotOutput("sp_comp_1"),
-             plotOutput("sp_comp_2")
-           )
-         )
-         ),
-
-tabPanel(title = "Tree usage",
-         sidebarLayout(
-           sidebarPanel(
-             selectInput("tree", "Tree type:",
-                         choices = unique(tree_by_week$tree_type),
-                         selected = sample(unique(tree_by_week$tree_type), 1))
-           ),
-           mainPanel(
-             plotOutput("tree_plot"))
-           )
-         ),
-
-tabPanel(title = "Methods",
-         htmltools::includeMarkdown("bbs_methods.md"))
+                 
+                 tabPanel(title = "Single-species display",
+                          sidebarLayout(      
+                            sidebarPanel(
+                              selectInput("species", "Species:", 
+                                          choices = unique(bbs_df$common_name),
+                                          selected = sample(bbs_df$common_name, 1))
+                            ),
+                            mainPanel(
+                              plotOutput("trendline"),
+                              DT::dataTableOutput("species_table")
+                            )
+                          )
+                 ),
+                 
+                 tabPanel(title = "Two-species comparison",
+                          sidebarLayout(      
+                            sidebarPanel(
+                              selectInput("sp_for_comp_1", "Species 1:", 
+                                          choices = unique(bbs_df$common_name),
+                                          selected = sample(bbs_df$common_name, 1)),
+                              hr(),
+                              selectInput("sp_for_comp_2", "Species 2:", 
+                                          choices = unique(bbs_df$common_name),
+                                          selected = sample(bbs_df$common_name, 1))
+                            ),
+                            mainPanel(
+                              plotOutput("sp_comp_1"),
+                              plotOutput("sp_comp_2")
+                            )
+                          )
+                 ),
+                 
+                 tabPanel(title = "Tree usage",
+                          sidebarLayout(
+                            sidebarPanel(
+                              selectInput("tree", "Tree type:",
+                                          choices = unique(tree_by_week$tree_type),
+                                          selected = sample(unique(tree_by_week$tree_type), 1))
+                            ),
+                            mainPanel(
+                              plotOutput("tree_plot")
+                            )
+                          )
+                 ),
+                 
+                 tabPanel(title = "Methods",
+                          htmltools::includeMarkdown("bbs_methods.md"))
 )
 
 shinyApp(ui = ui, server = server)

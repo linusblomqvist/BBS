@@ -12,8 +12,8 @@ library(readxl)
 # setwd("/Users/linusblomqvist/Library/CloudStorage/Dropbox/Birding/BBS/sb_bbs")
 
 # Read in data
-bbs_df_raw <- read_xlsx("SB BBS 2 Sept 2024 12815.xlsx", sheet = 4)
-aba_list_raw <- read_csv("aba_checklist.csv")
+bbs_df_raw <- read_xlsx("SB BBS 10 April 2025 13051.xlsx", sheet = 4)
+aba_list_raw <- read_csv("ABA_Checklist-8.17.csv")
 
 bbs_df <- janitor::clean_names(bbs_df_raw)
 
@@ -65,7 +65,7 @@ bbs_df <- bbs_df %>%
 
 bbs_df <- bbs_df %>%
   mutate(breeding_evidence = case_when(
-    breeding_evidence == "Adult at Nest (clarify)" ~ "Adult at Nest",
+    breeding_evidence == "Adult at Nest (clarify)" | breeding_evidence == "Adult at nest" ~ "Adult at Nest",
     breeding_evidence == "Nest in Use (clarify)" ~ "Nest in Use",
     .default = breeding_evidence
   ))
@@ -79,16 +79,15 @@ week_key <- data.frame(floor_day = seq(as.Date("2021-1-1"), as.Date("2021-12-31"
 
 # Taxonomic order
 aba_list <- aba_list_raw %>%
+  set_names(c("family", "species", "french_name", "scientific_name", "letter_code", "code")) %>%
+  filter(!is.na(species)) %>%
   select(species) %>%
   rename(common_name = species) %>%
-  mutate(common_name = case_when(
-    common_name == "Pacific-slope Flycatcher" ~ "Western Flycatcher",
-    .default = common_name
-  )) %>%
-  filter(common_name != "Cordilleran Flycatcher") %>%
-  add_row(.before = 726)
+  add_row(.before = 1031)
 
-aba_list$common_name[726] <- "Belding's Savannah Sparrow"
+# Note (Northern) House Wren in ABA
+
+aba_list$common_name[1031] <- "Belding's Savannah Sparrow"
 
 bbs_df <- left_join(aba_list, bbs_df, by = "common_name") %>%
   filter(!is.na(record_number))

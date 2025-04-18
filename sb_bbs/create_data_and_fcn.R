@@ -12,8 +12,8 @@ library(readxl)
 # setwd("/Users/linusblomqvist/Library/CloudStorage/Dropbox/Birding/BBS/sb_bbs")
 
 # Read in data
-bbs_df_raw <- read_xlsx("SB BBS 11 April 2025 13051.xlsx", sheet = 4)
-aba_list_raw <- read_csv("ABA_Checklist-8.17.csv")
+bbs_df_raw <- read_xlsx("data/SB BBS 11 April 2025 13051.xlsx", sheet = 4)
+aba_list_raw <- read_csv("data/ABA_Checklist-8.17.csv")
 
 bbs_df <- janitor::clean_names(bbs_df_raw)
 

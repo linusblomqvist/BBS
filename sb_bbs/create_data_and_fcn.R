@@ -9,10 +9,10 @@ library(shinythemes)
 library(scales)
 library(readxl)
 
-# setwd("/Users/linusblomqvist/Library/CloudStorage/Dropbox/Birding/BBS/sb_bbs")
+# setwd("~/Documents/BBS/sb_bbs")
 
 # Read in data
-bbs_df_raw <- read_xlsx("data/SB BBS 11 April 2025 13051.xlsx", sheet = 4)
+bbs_df_raw <- read_xlsx("data/SB BBS 5 July 2025 13426.xlsx", sheet = 3)
 aba_list_raw <- read_csv("data/ABA_Checklist-8.17.csv")
 
 bbs_df <- janitor::clean_names(bbs_df_raw)

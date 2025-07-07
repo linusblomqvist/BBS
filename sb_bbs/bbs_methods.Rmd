@@ -4,7 +4,7 @@ output: md_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '/Users/linusblomqvist/Library/CloudStorage/Dropbox/Birding/BBS/sb_bbs')
+knitr::opts_knit$set(root.dir = '~/Documents/BBS/sb_bbs')
 ```
 
 ```{r, message = FALSE, warning = FALSE, include = FALSE}
